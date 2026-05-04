@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Plus, Trash2, Edit2, GripVertical, Image as ImageIcon, X } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { Plus, Trash2, Edit2, GripVertical, Image as ImageIcon, X, Upload } from 'lucide-react'
 import DashboardLayout from '../components/DashboardLayout'
 import { supabase } from '../lib/supabase'
 import type { Database } from '../types/supabase'
@@ -11,14 +11,20 @@ export default function EditMenu() {
   const [categories, setCategories] = useState<Category[]>([])
   const [items, setItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
   const restaurantId = localStorage.getItem('menuqr_restaurant_id')
 
   // Forms state
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newItem, setNewItem] = useState({ category_id: '', name: '', description: '', price: '', image_url: '' })
+  const [newItemImageFile, setNewItemImageFile] = useState<File | null>(null)
   
   // Edit state
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
+  const [editingItemImageFile, setEditingItemImageFile] = useState<File | null>(null)
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const editFileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (restaurantId) {
@@ -42,6 +48,29 @@ export default function EditMenu() {
     if (cats) setCategories(cats)
     if (itms) setItems(itms as unknown as MenuItem[])
     setLoading(false)
+  }
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    if (!restaurantId) return null
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`
+    const filePath = `${restaurantId}/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('menu-images')
+      .upload(filePath, file)
+
+    if (uploadError) {
+      console.error('Error uploading image:', uploadError)
+      alert('Failed to upload image. Please make sure you ran the SQL to create the storage bucket.')
+      return null
+    }
+
+    const { data } = supabase.storage
+      .from('menu-images')
+      .getPublicUrl(filePath)
+      
+    return data.publicUrl
   }
 
   const addCategory = async (e: React.FormEvent) => {
@@ -75,6 +104,13 @@ export default function EditMenu() {
     e.preventDefault()
     if (!newItem.category_id || !newItem.name || !newItem.price) return
 
+    setUploading(true)
+    let imageUrl = newItem.image_url
+    if (newItemImageFile) {
+      const uploadedUrl = await uploadImage(newItemImageFile)
+      if (uploadedUrl) imageUrl = uploadedUrl
+    }
+
     const { data, error } = await supabase
       .from('menu_items')
       .insert([{
@@ -82,7 +118,7 @@ export default function EditMenu() {
         name: newItem.name,
         description: newItem.description,
         price: parseFloat(newItem.price),
-        image_url: newItem.image_url || null,
+        image_url: imageUrl || null,
         order_index: items.filter(i => i.category_id === newItem.category_id).length
       }])
       .select()
@@ -91,9 +127,12 @@ export default function EditMenu() {
     if (data) {
       setItems([...items, data])
       setNewItem({ category_id: newItem.category_id, name: '', description: '', price: '', image_url: '' })
+      setNewItemImageFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     } else {
       console.error(error)
     }
+    setUploading(false)
   }
 
   const deleteItem = async (id: string) => {
@@ -106,13 +145,20 @@ export default function EditMenu() {
     e.preventDefault()
     if (!editingItem) return
 
+    setUploading(true)
+    let imageUrl = editingItem.image_url
+    if (editingItemImageFile) {
+      const uploadedUrl = await uploadImage(editingItemImageFile)
+      if (uploadedUrl) imageUrl = uploadedUrl
+    }
+
     const { data, error } = await supabase
       .from('menu_items')
       .update({
         name: editingItem.name,
         description: editingItem.description,
         price: editingItem.price,
-        image_url: editingItem.image_url || null
+        image_url: imageUrl || null
       })
       .eq('id', editingItem.id)
       .select()
@@ -121,9 +167,11 @@ export default function EditMenu() {
     if (data) {
       setItems(items.map(i => i.id === editingItem.id ? data : i))
       setEditingItem(null)
+      setEditingItemImageFile(null)
     } else {
       console.error(error)
     }
+    setUploading(false)
   }
 
   if (!restaurantId) {
@@ -183,10 +231,28 @@ export default function EditMenu() {
                 <input type="text" className="form-input" placeholder="Item Name" value={newItem.name} onChange={(e) => setNewItem({...newItem, name: e.target.value})} required />
                 <input type="text" className="form-input" style={{ gridColumn: '1 / -1' }} placeholder="Description (Optional)" value={newItem.description} onChange={(e) => setNewItem({...newItem, description: e.target.value})} />
                 <input type="number" step="0.01" className="form-input" placeholder="Price (e.g. 10.50)" value={newItem.price} onChange={(e) => setNewItem({...newItem, price: e.target.value})} required />
-                <input type="url" className="form-input" placeholder="Image URL (Optional)" value={newItem.image_url} onChange={(e) => setNewItem({...newItem, image_url: e.target.value})} />
+                
+                <div className="form-input" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem 1rem' }} onClick={() => fileInputRef.current?.click()}>
+                  <Upload size={16} color="var(--color-text-muted)" />
+                  <span style={{ fontSize: '0.9rem', color: newItemImageFile ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+                    {newItemImageFile ? newItemImageFile.name : 'Upload Image (Optional)'}
+                  </span>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    ref={fileInputRef}
+                    style={{ display: 'none' }} 
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setNewItemImageFile(e.target.files[0])
+                      }
+                    }} 
+                  />
+                </div>
+
                 <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button type="submit" className="btn btn-primary">
-                    <Plus size={18} /> Add Item
+                  <button type="submit" className="btn btn-primary" disabled={uploading}>
+                    {uploading ? 'Adding...' : <><Plus size={18} /> Add Item</>}
                   </button>
                 </div>
               </form>
@@ -232,7 +298,7 @@ export default function EditMenu() {
                         </div>
                         <div className="flex items-center gap-3">
                           <span style={{ fontWeight: 600, color: 'var(--color-text)', marginRight: '1rem' }}>${item.price.toFixed(2)}</span>
-                          <button onClick={() => setEditingItem(item)} className="btn btn-ghost" style={{ padding: '0.4rem', color: 'var(--color-text-muted)' }}>
+                          <button onClick={() => { setEditingItem(item); setEditingItemImageFile(null); }} className="btn btn-ghost" style={{ padding: '0.4rem', color: 'var(--color-text-muted)' }}>
                             <Edit2 size={16} />
                           </button>
                           <button onClick={() => deleteItem(item.id)} className="btn btn-ghost" style={{ padding: '0.4rem', color: 'var(--color-danger)' }}>
@@ -251,11 +317,11 @@ export default function EditMenu() {
 
       {/* Edit Item Modal */}
       {editingItem && (
-        <div className="modal-overlay" onClick={() => setEditingItem(null)}>
+        <div className="modal-overlay" onClick={() => { if(!uploading) setEditingItem(null) }}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center" style={{ marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Edit Item</h3>
-              <button onClick={() => setEditingItem(null)} className="btn btn-ghost" style={{ padding: '0.4rem' }}>
+              <button onClick={() => { if(!uploading) setEditingItem(null) }} className="btn btn-ghost" style={{ padding: '0.4rem' }}>
                 <X size={20} />
               </button>
             </div>
@@ -272,13 +338,42 @@ export default function EditMenu() {
                 <label className="form-label">Price</label>
                 <input type="number" step="0.01" className="form-input" value={editingItem.price} onChange={e => setEditingItem({...editingItem, price: parseFloat(e.target.value) || 0})} required />
               </div>
+              
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Image URL</label>
-                <input type="url" className="form-input" value={editingItem.image_url || ''} onChange={e => setEditingItem({...editingItem, image_url: e.target.value})} />
+                <label className="form-label">Image</label>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  {(editingItemImageFile || editingItem.image_url) ? (
+                    <div style={{ width: '64px', height: '64px', flexShrink: 0, borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--color-border)' }}>
+                      <img 
+                        src={editingItemImageFile ? URL.createObjectURL(editingItemImageFile) : editingItem.image_url!} 
+                        alt="Preview" 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      />
+                    </div>
+                  ) : null}
+                  <div className="form-input" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }} onClick={() => editFileInputRef.current?.click()}>
+                    <Upload size={16} color="var(--color-text-muted)" />
+                    <span style={{ fontSize: '0.9rem', color: editingItemImageFile ? 'var(--color-text)' : 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {editingItemImageFile ? editingItemImageFile.name : (editingItem.image_url ? 'Replace Image' : 'Upload Image')}
+                    </span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      ref={editFileInputRef}
+                      style={{ display: 'none' }} 
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setEditingItemImageFile(e.target.files[0])
+                        }
+                      }} 
+                    />
+                  </div>
+                </div>
               </div>
+
               <div className="flex justify-end gap-3" style={{ marginTop: '1rem' }}>
-                <button type="button" onClick={() => setEditingItem(null)} className="btn btn-ghost">Cancel</button>
-                <button type="submit" className="btn btn-primary">Save Changes</button>
+                <button type="button" onClick={() => { if(!uploading) setEditingItem(null) }} className="btn btn-ghost" disabled={uploading}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={uploading}>{uploading ? 'Saving...' : 'Save Changes'}</button>
               </div>
             </form>
           </div>

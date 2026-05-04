@@ -64,3 +64,27 @@ create policy "Allow public delete on categories" on public.categories for delet
 create policy "Allow public insert on menu items" on public.menu_items for insert with check (true);
 create policy "Allow public update on menu items" on public.menu_items for update using (true);
 create policy "Allow public delete on menu items" on public.menu_items for delete using (true);
+
+-- Create a storage bucket for menu images
+insert into storage.buckets (id, name, public) 
+values ('menu-images', 'menu-images', true)
+on conflict (id) do nothing;
+
+-- Storage Policies for 'menu-images' bucket
+-- Allow public access to view images
+create policy "Public Access" 
+on storage.objects for select 
+using ( bucket_id = 'menu-images' );
+
+-- For MVP purposes, allow all uploads to the bucket
+create policy "Allow public uploads" 
+on storage.objects for insert 
+with check ( bucket_id = 'menu-images' );
+
+create policy "Allow public updates" 
+on storage.objects for update 
+using ( bucket_id = 'menu-images' );
+
+create policy "Allow public deletes" 
+on storage.objects for delete 
+using ( bucket_id = 'menu-images' );
