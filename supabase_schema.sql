@@ -1,3 +1,8 @@
+-- Wipe existing tables
+drop table if exists public.menu_items cascade;
+drop table if exists public.categories cascade;
+drop table if exists public.restaurants cascade;
+
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
@@ -5,6 +10,7 @@ create extension if not exists "uuid-ossp";
 create table public.restaurants (
     id uuid default uuid_generate_v4() primary key,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    owner_id uuid references auth.users(id) not null default auth.uid(),
     name text not null,
     logo_url text,
     primary_color text default '#000000'
@@ -37,8 +43,7 @@ alter table public.restaurants enable row level security;
 alter table public.categories enable row level security;
 alter table public.menu_items enable row level security;
 
--- Policies for public access (since this is an MVP without auth, we allow public read)
--- For a real application, you would restrict these
+-- Policies for public access (Read-Only)
 create policy "Allow public read access on restaurants"
     on public.restaurants for select
     using (true);
@@ -51,19 +56,57 @@ create policy "Allow public read access on menu items"
     on public.menu_items for select
     using (true);
 
--- For MVP purposes, allow all operations. 
--- In production, these should be restricted to authenticated users (owners).
-create policy "Allow public insert on restaurants" on public.restaurants for insert with check (true);
-create policy "Allow public update on restaurants" on public.restaurants for update using (true);
-create policy "Allow public delete on restaurants" on public.restaurants for delete using (true);
+-- Policies for authenticated owners
+-- Restaurants
+create policy "Allow owners to insert restaurants" 
+    on public.restaurants for insert 
+    with check (auth.uid() = owner_id);
 
-create policy "Allow public insert on categories" on public.categories for insert with check (true);
-create policy "Allow public update on categories" on public.categories for update using (true);
-create policy "Allow public delete on categories" on public.categories for delete using (true);
+create policy "Allow owners to update restaurants" 
+    on public.restaurants for update 
+    using (auth.uid() = owner_id);
 
-create policy "Allow public insert on menu items" on public.menu_items for insert with check (true);
-create policy "Allow public update on menu items" on public.menu_items for update using (true);
-create policy "Allow public delete on menu items" on public.menu_items for delete using (true);
+create policy "Allow owners to delete restaurants" 
+    on public.restaurants for delete 
+    using (auth.uid() = owner_id);
+
+-- Categories
+create policy "Allow owners to insert categories" 
+    on public.categories for insert 
+    with check (
+        exists (select 1 from public.restaurants where id = restaurant_id and owner_id = auth.uid())
+    );
+
+create policy "Allow owners to update categories" 
+    on public.categories for update 
+    using (
+        exists (select 1 from public.restaurants where id = restaurant_id and owner_id = auth.uid())
+    );
+
+create policy "Allow owners to delete categories" 
+    on public.categories for delete 
+    using (
+        exists (select 1 from public.restaurants where id = restaurant_id and owner_id = auth.uid())
+    );
+
+-- Menu Items
+create policy "Allow owners to insert menu items" 
+    on public.menu_items for insert 
+    with check (
+        exists (select 1 from public.categories c join public.restaurants r on c.restaurant_id = r.id where c.id = category_id and r.owner_id = auth.uid())
+    );
+
+create policy "Allow owners to update menu items" 
+    on public.menu_items for update 
+    using (
+        exists (select 1 from public.categories c join public.restaurants r on c.restaurant_id = r.id where c.id = category_id and r.owner_id = auth.uid())
+    );
+
+create policy "Allow owners to delete menu items" 
+    on public.menu_items for delete 
+    using (
+        exists (select 1 from public.categories c join public.restaurants r on c.restaurant_id = r.id where c.id = category_id and r.owner_id = auth.uid())
+    );
 
 -- Create a storage bucket for menu images
 insert into storage.buckets (id, name, public) 
@@ -71,20 +114,29 @@ values ('menu-images', 'menu-images', true)
 on conflict (id) do nothing;
 
 -- Storage Policies for 'menu-images' bucket
+-- Drop existing policies if they exist to prevent errors during rerun
+drop policy if exists "Public Access" on storage.objects;
+drop policy if exists "Allow public uploads" on storage.objects;
+drop policy if exists "Allow public updates" on storage.objects;
+drop policy if exists "Allow public deletes" on storage.objects;
+drop policy if exists "Allow authenticated uploads" on storage.objects;
+drop policy if exists "Allow authenticated updates" on storage.objects;
+drop policy if exists "Allow authenticated deletes" on storage.objects;
+
 -- Allow public access to view images
 create policy "Public Access" 
 on storage.objects for select 
 using ( bucket_id = 'menu-images' );
 
--- For MVP purposes, allow all uploads to the bucket
-create policy "Allow public uploads" 
+-- Allow authenticated users to upload images
+create policy "Allow authenticated uploads" 
 on storage.objects for insert 
-with check ( bucket_id = 'menu-images' );
+with check ( bucket_id = 'menu-images' and auth.role() = 'authenticated' );
 
-create policy "Allow public updates" 
+create policy "Allow authenticated updates" 
 on storage.objects for update 
-using ( bucket_id = 'menu-images' );
+using ( bucket_id = 'menu-images' and auth.role() = 'authenticated' );
 
-create policy "Allow public deletes" 
+create policy "Allow authenticated deletes" 
 on storage.objects for delete 
-using ( bucket_id = 'menu-images' );
+using ( bucket_id = 'menu-images' and auth.role() = 'authenticated' );

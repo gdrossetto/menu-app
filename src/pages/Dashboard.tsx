@@ -11,22 +11,28 @@ export default function Dashboard() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
   const [loading, setLoading] = useState(true)
   const [newRestaurantName, setNewRestaurantName] = useState('')
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
     checkSession()
   }, [])
 
   const checkSession = async () => {
-    const id = localStorage.getItem('menuqr_restaurant_id')
-    if (id) {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      setUserId(session.user.id)
+      // Fetch restaurant owned by this user
       const { data } = await supabase
         .from('restaurants')
         .select('*')
-        .eq('id', id)
-        .single()
+        .eq('owner_id', session.user.id)
+        .limit(1)
+        .maybeSingle()
       
       if (data) {
         setRestaurant(data)
+        // Store for other components that might need it synchronously
+        localStorage.setItem('menuqr_restaurant_id', data.id)
       } else {
         localStorage.removeItem('menuqr_restaurant_id')
       }
@@ -36,12 +42,12 @@ export default function Dashboard() {
 
   const createRestaurant = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newRestaurantName.trim()) return
+    if (!newRestaurantName.trim() || !userId) return
 
     setLoading(true)
     const { data, error } = await supabase
       .from('restaurants')
-      .insert([{ name: newRestaurantName }])
+      .insert([{ name: newRestaurantName }]) // owner_id is set by default to auth.uid() in the database schema
       .select()
       .single()
 

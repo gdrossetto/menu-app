@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react'
 import { LayoutDashboard, Menu, QrCode, Settings, LogOut, Menu as MenuIcon, X } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -145,8 +146,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <button 
             className="btn btn-ghost" 
             style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}
-            onClick={() => {
+            onClick={async () => {
               localStorage.removeItem('menuqr_restaurant_id')
+              await supabase.auth.signOut()
               window.location.reload()
             }}
           >
