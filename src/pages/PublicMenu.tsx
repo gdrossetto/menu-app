@@ -181,11 +181,18 @@ export default function PublicMenu() {
                 </h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {catItems.map(item => (
-                    <div key={item.id} className="card" style={{ display: 'flex', overflow: 'hidden', border: 'none', boxShadow: 'var(--shadow-sm)', backgroundColor: 'var(--color-surface)' }}>
+                    <div key={item.id} className="card" style={{ display: 'flex', overflow: 'hidden', border: 'none', boxShadow: 'var(--shadow-sm)', backgroundColor: 'var(--color-surface)', filter: item.is_available ? 'none' : 'grayscale(100%)', opacity: item.is_available ? 1 : 0.7 }}>
                       <div style={{ flex: 1, padding: '1.25rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0, color: 'var(--color-primary)' }}>{item.name}</h3>
-                          <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>${item.price.toFixed(2)}</span>
+                          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0, color: 'var(--color-primary)' }}>
+                            {item.name}
+                            {!item.is_available && (
+                              <span style={{ display: 'inline-flex', marginLeft: '0.5rem', fontSize: '0.7rem', backgroundColor: 'var(--color-border)', padding: '0.2rem 0.4rem', borderRadius: 'var(--radius-sm)', color: 'var(--color-surface)', fontWeight: 600, verticalAlign: 'middle', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                Out of Stock
+                              </span>
+                            )}
+                          </h3>
+                          <span style={{ fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>{(restaurant as any).currency_symbol || '$'}{item.price.toFixed(2)}</span>
                         </div>
                         {item.description && (
                           <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>

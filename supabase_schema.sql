@@ -13,7 +13,8 @@ create table public.restaurants (
     owner_id uuid references auth.users(id) not null default auth.uid(),
     name text not null,
     logo_url text,
-    primary_color text default '#000000'
+    primary_color text default '#000000',
+    currency_symbol text default '$'
 );
 
 -- Categories Table

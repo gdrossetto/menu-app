@@ -7,6 +7,7 @@ import {
   Image as ImageIcon,
   X,
   Upload,
+  EyeOff
 } from "lucide-react";
 import DashboardLayout from "../components/DashboardLayout";
 import { supabase } from "../lib/supabase";
@@ -36,6 +37,7 @@ type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 export default function EditMenu() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<MenuItem[]>([]);
+  const [restaurant, setRestaurant] = useState<Database["public"]["Tables"]["restaurants"]["Row"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const restaurantId = localStorage.getItem("menuqr_restaurant_id");
@@ -76,6 +78,13 @@ export default function EditMenu() {
 
   const fetchMenuData = async () => {
     setLoading(true);
+    
+    const { data: rest } = await supabase
+      .from("restaurants")
+      .select("*")
+      .eq("id", restaurantId!)
+      .single();
+
     const { data: cats } = await supabase
       .from("categories")
       .select("*")
@@ -85,8 +94,10 @@ export default function EditMenu() {
     const { data: itms } = await supabase
       .from("menu_items")
       .select("*, categories!inner(restaurant_id)")
-      .eq("categories.restaurant_id", restaurantId!);
+      .eq("categories.restaurant_id", restaurantId!)
+      .order("order_index");
 
+    if (rest) setRestaurant(rest);
     if (cats) setCategories(cats);
     if (itms) setItems(itms as unknown as MenuItem[]);
     setLoading(false);
@@ -146,7 +157,7 @@ export default function EditMenu() {
     setItems(items.filter((i) => i.category_id !== id));
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleCategoryDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -176,6 +187,50 @@ export default function EditMenu() {
     if (error) {
       console.error("Error updating order:", error);
       alert("Failed to save the new order. Reverting changes.");
+      fetchMenuData();
+    }
+  };
+
+  const handleItemDragEnd = async (event: DragEndEvent, categoryId: string) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const categoryItems = items.filter(i => i.category_id === categoryId);
+    const oldIndex = categoryItems.findIndex((i) => i.id === active.id);
+    const newIndex = categoryItems.findIndex((i) => i.id === over.id);
+
+    const newCategoryItems = arrayMove(categoryItems, oldIndex, newIndex);
+    const updatedCategoryItems = newCategoryItems.map((item, index) => ({
+      ...item,
+      order_index: index,
+    }));
+
+    // Update global items state optimistically
+    setItems(items.map(item => {
+      if (item.category_id === categoryId) {
+        return updatedCategoryItems.find(u => u.id === item.id) || item;
+      }
+      return item;
+    }));
+
+    // Save to Supabase
+    const { error } = await supabase.from("menu_items").upsert(
+      updatedCategoryItems.map((i) => ({
+        id: i.id,
+        category_id: i.category_id,
+        name: i.name,
+        description: i.description,
+        price: i.price,
+        image_url: i.image_url,
+        is_available: i.is_available,
+        order_index: i.order_index,
+        created_at: i.created_at,
+      }))
+    );
+
+    if (error) {
+      console.error("Error updating item order:", error);
+      alert("Failed to save the item order. Reverting changes.");
       fetchMenuData();
     }
   };
@@ -249,6 +304,7 @@ export default function EditMenu() {
         description: editingItem.description,
         price: editingItem.price,
         image_url: imageUrl || null,
+        is_available: editingItem.is_available
       })
       .eq("id", editingItem.id)
       .select()
@@ -493,7 +549,7 @@ export default function EditMenu() {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+            onDragEnd={handleCategoryDragEnd}
           >
             <div className="flex flex-col gap-8">
               <SortableContext
@@ -504,11 +560,14 @@ export default function EditMenu() {
                   <SortableCategory
                     key={category.id}
                     category={category}
-                    items={items.filter((i) => i.category_id === category.id)}
+                    items={items.filter((i) => i.category_id === category.id).sort((a,b) => a.order_index - b.order_index)}
                     deleteCategory={deleteCategory}
                     deleteItem={deleteItem}
                     setEditingItem={setEditingItem}
                     setEditingItemImageFile={setEditingItemImageFile}
+                    handleItemDragEnd={(e) => handleItemDragEnd(e, category.id)}
+                    sensors={sensors}
+                    currencySymbol={(restaurant as any)?.currency_symbol || '$'}
                   />
                 ))}
               </SortableContext>
@@ -585,6 +644,18 @@ export default function EditMenu() {
                   }
                   required
                 />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={editingItem.is_available} 
+                    onChange={e => setEditingItem({ ...editingItem, is_available: e.target.checked })} 
+                    style={{ width: '1rem', height: '1rem' }}
+                  />
+                  Item is Available (In Stock)
+                </label>
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
@@ -699,6 +770,9 @@ interface SortableCategoryProps {
   deleteItem: (id: string) => void;
   setEditingItem: (item: MenuItem) => void;
   setEditingItemImageFile: (file: File | null) => void;
+  handleItemDragEnd: (e: DragEndEvent) => void;
+  sensors: any;
+  currencySymbol: string;
 }
 
 function SortableCategory({
@@ -708,6 +782,9 @@ function SortableCategory({
   deleteItem,
   setEditingItem,
   setEditingItemImageFile,
+  handleItemDragEnd,
+  sensors,
+  currencySymbol
 }: SortableCategoryProps) {
   const {
     attributes,
@@ -768,104 +845,166 @@ function SortableCategory({
           No items in this category yet.
         </p>
       ) : (
-        <div className="flex flex-col gap-3">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="card"
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "1rem",
-                padding: "1rem",
-                border: "none",
-                boxShadow: "var(--shadow-sm)",
-              }}
-            >
-              <div className="flex gap-4 items-center">
-                {item.image_url ? (
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    style={{
-                      width: "48px",
-                      height: "48px",
-                      objectFit: "cover",
-                      borderRadius: "var(--radius-sm)",
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: "48px",
-                      height: "48px",
-                      backgroundColor: "var(--color-surface-hover)",
-                      borderRadius: "var(--radius-sm)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <ImageIcon size={20} color="var(--color-border)" />
-                  </div>
-                )}
-                <div>
-                  <p style={{ fontWeight: 500, fontSize: "1rem" }}>
-                    {item.name}
-                  </p>
-                  {item.description && (
-                    <p
-                      style={{
-                        fontSize: "0.85rem",
-                        color: "var(--color-text-muted)",
-                        marginTop: "0.1rem",
-                      }}
-                    >
-                      {item.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div
-                className="flex items-center gap-3"
-                style={{ marginLeft: "auto" }}
-              >
-                <span
-                  style={{
-                    fontWeight: 600,
-                    color: "var(--color-text)",
-                    marginRight: "1rem",
-                  }}
-                >
-                  ${item.price.toFixed(2)}
-                </span>
-                <button
-                  onClick={() => {
-                    setEditingItem(item);
-                    setEditingItemImageFile(null);
-                  }}
-                  className="btn btn-ghost"
-                  style={{
-                    padding: "0.4rem",
-                    color: "var(--color-text-muted)",
-                  }}
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button
-                  onClick={() => deleteItem(item.id)}
-                  className="btn btn-ghost"
-                  style={{ padding: "0.4rem", color: "var(--color-danger)" }}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleItemDragEnd}
+        >
+          <div className="flex flex-col gap-3">
+            <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+              {items.map((item) => (
+                <SortableMenuItem 
+                  key={item.id} 
+                  item={item} 
+                  setEditingItem={setEditingItem}
+                  setEditingItemImageFile={setEditingItemImageFile}
+                  deleteItem={deleteItem}
+                  currencySymbol={currencySymbol}
+                />
+              ))}
+            </SortableContext>
+          </div>
+        </DndContext>
       )}
     </div>
   );
+}
+
+interface SortableMenuItemProps {
+  item: MenuItem;
+  setEditingItem: (item: MenuItem) => void;
+  setEditingItemImageFile: (file: File | null) => void;
+  deleteItem: (id: string) => void;
+  currencySymbol: string;
+}
+
+function SortableMenuItem({ item, setEditingItem, setEditingItemImageFile, deleteItem, currencySymbol }: SortableMenuItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : (item.is_available ? 1 : 0.6),
+    position: "relative" as const,
+    zIndex: isDragging ? 10 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      className="card"
+      style={{
+        ...style,
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "1rem",
+        padding: "1rem",
+        border: "none",
+        boxShadow: "var(--shadow-sm)",
+      }}
+    >
+      <div className="flex gap-4 items-center">
+        <div
+          {...attributes}
+          {...listeners}
+          style={{ cursor: "grab", display: "flex", touchAction: "none" }}
+        >
+          <GripVertical size={16} color="var(--color-text-muted)" />
+        </div>
+        {item.image_url ? (
+          <img
+            src={item.image_url}
+            alt={item.name}
+            style={{
+              width: "48px",
+              height: "48px",
+              objectFit: "cover",
+              borderRadius: "var(--radius-sm)",
+              filter: item.is_available ? 'none' : 'grayscale(100%)'
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              backgroundColor: "var(--color-surface-hover)",
+              borderRadius: "var(--radius-sm)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ImageIcon size={20} color="var(--color-border)" />
+          </div>
+        )}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <p style={{ fontWeight: 500, fontSize: "1rem" }}>
+              {item.name}
+            </p>
+            {!item.is_available && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.75rem', backgroundColor: 'var(--color-surface-hover)', padding: '0.1rem 0.4rem', borderRadius: 'var(--radius-sm)', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                <EyeOff size={12} /> Hidden
+              </span>
+            )}
+          </div>
+          {item.description && (
+            <p
+              style={{
+                fontSize: "0.85rem",
+                color: "var(--color-text-muted)",
+                marginTop: "0.1rem",
+              }}
+            >
+              {item.description}
+            </p>
+          )}
+        </div>
+      </div>
+      <div
+        className="flex items-center gap-3"
+        style={{ marginLeft: "auto" }}
+      >
+        <span
+          style={{
+            fontWeight: 600,
+            color: "var(--color-text)",
+            marginRight: "1rem",
+          }}
+        >
+          {currencySymbol}{item.price.toFixed(2)}
+        </span>
+        <button
+          onClick={() => {
+            setEditingItem(item);
+            setEditingItemImageFile(null);
+          }}
+          className="btn btn-ghost"
+          style={{
+            padding: "0.4rem",
+            color: "var(--color-text-muted)",
+          }}
+        >
+          <Edit2 size={16} />
+        </button>
+        <button
+          onClick={() => deleteItem(item.id)}
+          className="btn btn-ghost"
+          style={{ padding: "0.4rem", color: "var(--color-danger)" }}
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </div>
+  )
 }

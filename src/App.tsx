@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard'
 import EditMenu from './pages/EditMenu'
 import PublicMenu from './pages/PublicMenu'
 import Login from './pages/Login'
+import Settings from './pages/Settings'
 import { supabase } from './lib/supabase'
 
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -58,6 +59,11 @@ function App() {
         <Route path="/dashboard/menu" element={
           <RequireAuth>
             <EditMenu />
+          </RequireAuth>
+        } />
+        <Route path="/dashboard/settings" element={
+          <RequireAuth>
+            <Settings />
           </RequireAuth>
         } />
         
