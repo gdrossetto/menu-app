@@ -13,24 +13,31 @@ export interface Database {
         Row: {
           id: string;
           created_at: string;
+          owner_id: string;
           name: string;
           logo_url: string | null;
           primary_color: string | null;
+          currency_symbol: string | null;
         };
         Insert: {
           id?: string;
           created_at?: string;
+          owner_id?: string;
           name: string;
           logo_url?: string | null;
           primary_color?: string | null;
+          currency_symbol?: string | null;
         };
         Update: {
           id?: string;
           created_at?: string;
+          owner_id?: string;
           name?: string;
           logo_url?: string | null;
           primary_color?: string | null;
+          currency_symbol?: string | null;
         };
+        Relationships: [];
       };
       categories: {
         Row: {
@@ -54,6 +61,15 @@ export interface Database {
           name?: string;
           order_index?: number;
         };
+        Relationships: [
+          {
+            foreignKeyName: "categories_restaurant_id_fkey";
+            columns: ["restaurant_id"];
+            isOneToOne: false;
+            referencedRelation: "restaurants";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       menu_items: {
         Row: {
@@ -89,6 +105,41 @@ export interface Database {
           is_available?: boolean;
           order_index?: number;
         };
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      menu_views: {
+        Row: {
+          id: string;
+          restaurant_id: string;
+          viewed_at: string;
+        };
+        Insert: {
+          id?: string;
+          restaurant_id: string;
+          viewed_at?: string;
+        };
+        Update: {
+          id?: string;
+          restaurant_id?: string;
+          viewed_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "menu_views_restaurant_id_fkey";
+            columns: ["restaurant_id"];
+            isOneToOne: false;
+            referencedRelation: "restaurants";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: {

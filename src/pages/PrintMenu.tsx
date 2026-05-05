@@ -1,11 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useParams } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import type { Database } from '../types/supabase'
-
-type Restaurant = Database['public']['Tables']['restaurants']['Row']
-type Category = Database['public']['Tables']['categories']['Row']
-type MenuItem = Database['public']['Tables']['menu_items']['Row']
+import { fetchMenuData } from '../lib/menuData'
+import type { Category, MenuItem, Restaurant } from '../types/menu'
 
 export default function PrintMenu() {
   const { restaurantId } = useParams()
@@ -15,59 +12,36 @@ export default function PrintMenu() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (restaurantId) {
-      fetchData()
+  const loadMenu = useCallback(async () => {
+    if (!restaurantId) return
+    setLoading(true)
+    setError('')
+
+    try {
+      const {
+        restaurant: rest,
+        categories: menuCategories,
+        items: menuItems,
+      } = await fetchMenuData(restaurantId)
+
+      setRestaurant(rest)
+      setCategories(menuCategories)
+      setItems(menuItems.filter((item) => item.is_available))
+      setLoading(false)
+
+      setTimeout(() => {
+        window.print()
+      }, 500)
+    } catch (menuError) {
+      console.error('Error loading printable menu:', menuError)
+      setError('Restaurant not found.')
+      setLoading(false)
     }
   }, [restaurantId])
 
-  const fetchData = async () => {
-    setLoading(true)
-    
-    // Fetch Restaurant
-    const { data: rest, error: rErr } = await supabase
-      .from('restaurants')
-      .select('*')
-      .eq('id', restaurantId!)
-      .single()
-
-    if (rErr || !rest) {
-      setError('Restaurant not found.')
-      setLoading(false)
-      return
-    }
-
-    setRestaurant(rest)
-
-    // Fetch Categories
-    const { data: cats } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('restaurant_id', restaurantId!)
-      .order('order_index')
-
-    // Fetch Items
-    const { data: itms } = await supabase
-      .from('menu_items')
-      .select('*, categories!inner(restaurant_id)')
-      .eq('categories.restaurant_id', restaurantId!)
-      .order('order_index')
-
-    if (cats && cats.length > 0) {
-      setCategories(cats)
-    }
-    if (itms) {
-      // Filter out unavailable items for the print version
-      setItems(itms.filter((item: any) => item.is_available) as unknown as MenuItem[])
-    }
-    
-    setLoading(false)
-    
-    // Trigger print dialog after a short delay to ensure rendering is complete
-    setTimeout(() => {
-      window.print()
-    }, 500)
-  }
+  useEffect(() => {
+    void Promise.resolve().then(loadMenu)
+  }, [loadMenu])
 
   if (loading) {
     return (
@@ -96,7 +70,7 @@ export default function PrintMenu() {
       maxWidth: '1000px',
       margin: '0 auto',
       ...((restaurant.primary_color && restaurant.primary_color !== '#000000') ? { '--color-primary': restaurant.primary_color } : {}) 
-    } as React.CSSProperties}>
+    } as CSSProperties}>
       
       <style>
         {`
@@ -164,7 +138,7 @@ export default function PrintMenu() {
                       {/* Dotted leader */}
                       <div style={{ flex: 1, borderBottom: '1px dotted #ccc', margin: '0 0.5rem', position: 'relative', top: '-4px' }}></div>
                       <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
-                        {(restaurant as any).currency_symbol || '$'}{item.price.toFixed(2)}
+                        {restaurant.currency_symbol || '$'}{item.price.toFixed(2)}
                       </span>
                     </div>
                     {item.description && (

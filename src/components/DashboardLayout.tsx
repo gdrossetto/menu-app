@@ -1,4 +1,5 @@
-import { ReactNode, useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { LayoutDashboard, Menu, QrCode, Settings, LogOut, Menu as MenuIcon, X } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -20,10 +21,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false)
-  }, [location.pathname])
+  const closeMobileMenu = () => setIsMobileMenuOpen(false)
 
   const sidebarWidth = '260px'
 
@@ -90,6 +88,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <nav style={{ padding: '1.5rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <Link
             to="/dashboard"
+            onClick={closeMobileMenu}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -108,6 +107,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </Link>
           <Link
             to="/dashboard/menu"
+            onClick={closeMobileMenu}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -126,6 +126,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </Link>
           <Link
             to="/dashboard/settings"
+            onClick={closeMobileMenu}
             style={{
               display: 'flex',
               alignItems: 'center',

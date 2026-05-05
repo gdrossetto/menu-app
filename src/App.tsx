@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { ReactElement } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -13,9 +14,10 @@ import Login from "./pages/Login";
 import Settings from "./pages/Settings";
 import PrintMenu from "./pages/PrintMenu";
 import { supabase } from "./lib/supabase";
+import type { Session } from "@supabase/supabase-js";
 
-function RequireAuth({ children }: { children: JSX.Element }) {
-  const [session, setSession] = useState<any>(null);
+function RequireAuth({ children }: { children: ReactElement }) {
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
 

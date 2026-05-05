@@ -1,18 +1,14 @@
-import { useEffect, useState, useRef } from "react";
-import {
-  Plus,
-  Trash2,
-  Edit2,
-  GripVertical,
-  Image as ImageIcon,
-  X,
-  Upload,
-  EyeOff
-} from "lucide-react";
-import { useTranslation } from 'react-i18next';
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
+import { Plus, X, Upload } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "../components/DashboardLayout";
+import LoadingSpinner from "../components/LoadingSpinner";
+import SortableCategory from "../components/SortableCategory";
 import { supabase } from "../lib/supabase";
-import type { Database } from "../types/supabase";
+import { fetchMenuData as fetchRestaurantMenuData, sortItemsForCategory } from "../lib/menuData";
+import { uploadMenuImage } from "../lib/imageUpload";
+import type { Category, MenuItem, Restaurant } from "../types/menu";
 
 import {
   DndContext,
@@ -28,17 +24,12 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-
-type Category = Database["public"]["Tables"]["categories"]["Row"];
-type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 
 export default function EditMenu() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<MenuItem[]>([]);
-  const [restaurant, setRestaurant] = useState<Database["public"]["Tables"]["restaurants"]["Row"] | null>(null);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const { t } = useTranslation();
@@ -72,70 +63,38 @@ export default function EditMenu() {
     }),
   );
 
-  useEffect(() => {
-    if (restaurantId) {
-      fetchMenuData();
+  const loadMenuData = useCallback(async () => {
+    if (!restaurantId) return;
+    setLoading(true);
+    try {
+      const data = await fetchRestaurantMenuData(restaurantId);
+      setRestaurant(data.restaurant);
+      setCategories(data.categories);
+      setItems(data.items);
+    } catch (error) {
+      console.error("Error fetching menu data:", error);
     }
+    setLoading(false);
   }, [restaurantId]);
 
-  const fetchMenuData = async () => {
-    setLoading(true);
-    
-    const { data: rest } = await supabase
-      .from("restaurants")
-      .select("*")
-      .eq("id", restaurantId!)
-      .single();
-
-    const { data: cats } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("restaurant_id", restaurantId!)
-      .order("order_index");
-
-    const { data: itms } = await supabase
-      .from("menu_items")
-      .select("*, categories!inner(restaurant_id)")
-      .eq("categories.restaurant_id", restaurantId!)
-      .order("order_index");
-
-    if (rest) setRestaurant(rest);
-    if (cats) setCategories(cats);
-    if (itms) setItems(itms as unknown as MenuItem[]);
-    setLoading(false);
-  };
+  useEffect(() => {
+    void Promise.resolve().then(loadMenuData);
+  }, [loadMenuData]);
 
   const uploadImage = async (rawFile: File): Promise<string | null> => {
     if (!restaurantId) return null;
-    
-    // Compress image before upload (max 800px width for menu items)
-    const { compressImage } = await import('../lib/imageOptimization');
-    const file = await compressImage(rawFile, 800, 0.8);
-    
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-    const filePath = `${restaurantId}/${fileName}`;
+    const publicUrl = await uploadMenuImage(rawFile, restaurantId);
 
-    const { error: uploadError } = await supabase.storage
-      .from("menu-images")
-      .upload(filePath, file);
-
-    if (uploadError) {
-      console.error("Error uploading image:", uploadError);
+    if (!publicUrl) {
       alert(
         "Failed to upload image. Please make sure you ran the SQL to create the storage bucket.",
       );
-      return null;
     }
 
-    const { data } = supabase.storage
-      .from("menu-images")
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
+    return publicUrl;
   };
 
-  const addCategory = async (e: React.FormEvent) => {
+  const addCategory = async (e: FormEvent) => {
     e.preventDefault();
     if (!newCategoryName.trim() || !restaurantId) return;
 
@@ -194,7 +153,7 @@ export default function EditMenu() {
     if (error) {
       console.error("Error updating order:", error);
       alert("Failed to save the new order. Reverting changes.");
-      fetchMenuData();
+      void loadMenuData();
     }
   };
 
@@ -238,11 +197,11 @@ export default function EditMenu() {
     if (error) {
       console.error("Error updating item order:", error);
       alert("Failed to save the item order. Reverting changes.");
-      fetchMenuData();
+      void loadMenuData();
     }
   };
 
-  const addItem = async (e: React.FormEvent) => {
+  const addItem = async (e: FormEvent) => {
     e.preventDefault();
     if (!newItem.category_id || !newItem.name || !newItem.price) return;
 
@@ -293,7 +252,7 @@ export default function EditMenu() {
     setItems(items.filter((i) => i.id !== id));
   };
 
-  const updateItem = async (e: React.FormEvent) => {
+  const updateItem = async (e: FormEvent) => {
     e.preventDefault();
     if (!editingItem) return;
 
@@ -541,16 +500,7 @@ export default function EditMenu() {
         {/* Categories and Items List (Sortable) */}
         {loading ? (
           <div className="flex justify-center p-8">
-            <div
-              className="spinner"
-              style={{
-                width: "30px",
-                height: "30px",
-                border: "2px solid var(--color-border)",
-                borderTopColor: "var(--color-primary)",
-                borderRadius: "50%",
-              }}
-            ></div>
+            <LoadingSpinner label="Loading menu" />
           </div>
         ) : (
           <DndContext
@@ -567,14 +517,16 @@ export default function EditMenu() {
                   <SortableCategory
                     key={category.id}
                     category={category}
-                    items={items.filter((i) => i.category_id === category.id).sort((a,b) => a.order_index - b.order_index)}
-                    deleteCategory={deleteCategory}
-                    deleteItem={deleteItem}
-                    setEditingItem={setEditingItem}
-                    setEditingItemImageFile={setEditingItemImageFile}
-                    handleItemDragEnd={(e) => handleItemDragEnd(e, category.id)}
+                    items={sortItemsForCategory(items, category)}
+                    onDeleteCategory={deleteCategory}
+                    onDeleteItem={deleteItem}
+                    onEditItem={(item) => {
+                      setEditingItem(item);
+                      setEditingItemImageFile(null);
+                    }}
+                    onItemDragEnd={(e) => handleItemDragEnd(e, category.id)}
                     sensors={sensors}
-                    currencySymbol={(restaurant as any)?.currency_symbol || '$'}
+                    currencySymbol={restaurant?.currency_symbol || "$"}
                   />
                 ))}
               </SortableContext>
@@ -768,251 +720,4 @@ export default function EditMenu() {
       )}
     </DashboardLayout>
   );
-}
-
-interface SortableCategoryProps {
-  category: Category;
-  items: MenuItem[];
-  deleteCategory: (id: string) => void;
-  deleteItem: (id: string) => void;
-  setEditingItem: (item: MenuItem) => void;
-  setEditingItemImageFile: (file: File | null) => void;
-  handleItemDragEnd: (e: DragEndEvent) => void;
-  sensors: any;
-  currencySymbol: string;
-}
-
-function SortableCategory({
-  category,
-  items,
-  deleteCategory,
-  deleteItem,
-  setEditingItem,
-  setEditingItemImageFile,
-  handleItemDragEnd,
-  sensors,
-  currencySymbol
-}: SortableCategoryProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: category.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-    position: "relative" as const,
-    zIndex: isDragging ? 10 : 1,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style}>
-      <div
-        className="flex justify-between items-center"
-        style={{
-          marginBottom: "1rem",
-          paddingBottom: "0.5rem",
-          borderBottom: "1px solid var(--color-border)",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: "1.25rem",
-            fontWeight: 600,
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-          }}
-        >
-          <div
-            {...attributes}
-            {...listeners}
-            style={{ cursor: "grab", display: "flex", touchAction: "none" }}
-          >
-            <GripVertical size={18} color="var(--color-text-muted)" />
-          </div>
-          {category.name}
-        </h2>
-        <button
-          onClick={() => deleteCategory(category.id)}
-          className="btn btn-ghost btn-danger"
-          style={{ padding: "0.4rem" }}
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
-
-      {items.length === 0 ? (
-        <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem" }}>
-          {/* Note: In a real app we'd pass translation function down or use a context, but we will hardcode translation hook here is tricky since this is outside the main component. We will rely on simple fallback for now or we could use the i18n directly. */}
-          No items in this category yet.
-        </p>
-      ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleItemDragEnd}
-        >
-          <div className="flex flex-col gap-3">
-            <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
-              {items.map((item) => (
-                <SortableMenuItem 
-                  key={item.id} 
-                  item={item} 
-                  setEditingItem={setEditingItem}
-                  setEditingItemImageFile={setEditingItemImageFile}
-                  deleteItem={deleteItem}
-                  currencySymbol={currencySymbol}
-                />
-              ))}
-            </SortableContext>
-          </div>
-        </DndContext>
-      )}
-    </div>
-  );
-}
-
-interface SortableMenuItemProps {
-  item: MenuItem;
-  setEditingItem: (item: MenuItem) => void;
-  setEditingItemImageFile: (file: File | null) => void;
-  deleteItem: (id: string) => void;
-  currencySymbol: string;
-}
-
-function SortableMenuItem({ item, setEditingItem, setEditingItemImageFile, deleteItem, currencySymbol }: SortableMenuItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : (item.is_available ? 1 : 0.6),
-    position: "relative" as const,
-    zIndex: isDragging ? 10 : 1,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      className="card"
-      style={{
-        ...style,
-        display: "flex",
-        flexWrap: "wrap",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: "1rem",
-        padding: "1rem",
-        border: "none",
-        boxShadow: "var(--shadow-sm)",
-      }}
-    >
-      <div className="flex gap-4 items-center">
-        <div
-          {...attributes}
-          {...listeners}
-          style={{ cursor: "grab", display: "flex", touchAction: "none" }}
-        >
-          <GripVertical size={16} color="var(--color-text-muted)" />
-        </div>
-        {item.image_url ? (
-          <img
-            src={item.image_url}
-            alt={item.name}
-            style={{
-              width: "48px",
-              height: "48px",
-              objectFit: "cover",
-              borderRadius: "var(--radius-sm)",
-              filter: item.is_available ? 'none' : 'grayscale(100%)'
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              backgroundColor: "var(--color-surface-hover)",
-              borderRadius: "var(--radius-sm)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <ImageIcon size={20} color="var(--color-border)" />
-          </div>
-        )}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <p style={{ fontWeight: 500, fontSize: "1rem" }}>
-              {item.name}
-            </p>
-            {!item.is_available && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.75rem', backgroundColor: 'var(--color-surface-hover)', padding: '0.1rem 0.4rem', borderRadius: 'var(--radius-sm)', color: 'var(--color-text-muted)', fontWeight: 600 }}>
-                <EyeOff size={12} /> Hidden
-              </span>
-            )}
-          </div>
-          {item.description && (
-            <p
-              style={{
-                fontSize: "0.85rem",
-                color: "var(--color-text-muted)",
-                marginTop: "0.1rem",
-              }}
-            >
-              {item.description}
-            </p>
-          )}
-        </div>
-      </div>
-      <div
-        className="flex items-center gap-3"
-        style={{ marginLeft: "auto" }}
-      >
-        <span
-          style={{
-            fontWeight: 600,
-            color: "var(--color-text)",
-            marginRight: "1rem",
-          }}
-        >
-          {currencySymbol}{item.price.toFixed(2)}
-        </span>
-        <button
-          onClick={() => {
-            setEditingItem(item);
-            setEditingItemImageFile(null);
-          }}
-          className="btn btn-ghost"
-          style={{
-            padding: "0.4rem",
-            color: "var(--color-text-muted)",
-          }}
-        >
-          <Edit2 size={16} />
-        </button>
-        <button
-          onClick={() => deleteItem(item.id)}
-          className="btn btn-ghost"
-          style={{ padding: "0.4rem", color: "var(--color-danger)" }}
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
-    </div>
-  )
 }

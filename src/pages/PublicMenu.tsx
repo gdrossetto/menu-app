@@ -1,13 +1,21 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { useParams } from "react-router-dom";
-import { Image as ImageIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { supabase } from "../lib/supabase";
-import type { Database } from "../types/supabase";
+import { fetchMenuData } from "../lib/menuData";
+import type { Category, MenuItem, Restaurant } from "../types/menu";
 
-type Restaurant = Database["public"]["Tables"]["restaurants"]["Row"];
-type Category = Database["public"]["Tables"]["categories"]["Row"];
-type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
+function setMetaTag(property: string, content: string) {
+  let element = document.querySelector(`meta[property="${property}"]`);
+  if (!element) {
+    element = document.createElement("meta");
+    element.setAttribute("property", property);
+    document.head.appendChild(element);
+  }
+  element.setAttribute("content", content);
+}
 
 export default function PublicMenu() {
   const { restaurantId } = useParams();
@@ -21,81 +29,42 @@ export default function PublicMenu() {
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (restaurantId) {
-      fetchData();
-    }
-  }, [restaurantId]);
-
-  const fetchData = async () => {
+  const loadMenu = useCallback(async () => {
+    if (!restaurantId) return;
     setLoading(true);
+    setError("");
 
-    // Fetch Restaurant
-    const { data: rest, error: rErr } = await supabase
-      .from("restaurants")
-      .select("*")
-      .eq("id", restaurantId!)
-      .single();
-
-    if (rErr || !rest) {
-      setError("Restaurant not found.");
-      setLoading(false);
-      return;
-    }
-
-    setRestaurant(rest);
-
-    // Fetch Categories
-    const { data: cats } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("restaurant_id", restaurantId!)
-      .order("order_index");
-
-    // Fetch Items
-    const { data: itms } = await supabase
-      .from("menu_items")
-      .select("*, categories!inner(restaurant_id)")
-      .eq("categories.restaurant_id", restaurantId!)
-      .order("order_index");
-
-    if (cats && cats.length > 0) {
+    try {
+      const { restaurant: rest, categories: cats, items: menuItems } =
+        await fetchMenuData(restaurantId);
+      setRestaurant(rest);
       setCategories(cats);
-      setActiveCategory(cats[0].id);
-    }
-    if (itms) {
-      setItems(itms as unknown as MenuItem[]);
-    }
+      setActiveCategory(cats[0]?.id || "");
+      setItems(menuItems);
 
-    // Update Meta Tags
-    document.title = `${rest.name} - Menu`;
-
-    // Helper to safely update or create meta tags
-    const setMetaTag = (property: string, content: string) => {
-      let element = document.querySelector(`meta[property="${property}"]`);
-      if (!element) {
-        element = document.createElement("meta");
-        element.setAttribute("property", property);
-        document.head.appendChild(element);
+      document.title = `${rest.name} - Menu`;
+      setMetaTag("og:title", `${rest.name} - Menu`);
+      setMetaTag("og:description", `View the digital menu for ${rest.name}.`);
+      if (rest.logo_url) {
+        setMetaTag("og:image", rest.logo_url);
       }
-      element.setAttribute("content", content);
-    };
 
-    setMetaTag("og:title", `${rest.name} - Menu`);
-    setMetaTag("og:description", `View the digital menu for ${rest.name}.`);
-    if (rest.logo_url) {
-      setMetaTag("og:image", rest.logo_url);
-    }
-
-    // Log view once per session to prevent strict-mode double-firing and refresh spam
-    const sessionKey = `viewed_${rest.id}`;
-    if (!sessionStorage.getItem(sessionKey)) {
-      sessionStorage.setItem(sessionKey, "true");
-      supabase.from("menu_views").insert({ restaurant_id: rest.id }).then();
+      const sessionKey = `viewed_${rest.id}`;
+      if (!sessionStorage.getItem(sessionKey)) {
+        sessionStorage.setItem(sessionKey, "true");
+        void supabase.from("menu_views").insert({ restaurant_id: rest.id });
+      }
+    } catch (menuError) {
+      console.error("Error loading public menu:", menuError);
+      setError("Restaurant not found.");
     }
 
     setLoading(false);
-  };
+  }, [restaurantId]);
+
+  useEffect(() => {
+    void Promise.resolve().then(loadMenu);
+  }, [loadMenu]);
 
   // Smooth scroll to category
   const scrollToCategory = (id: string) => {
@@ -129,28 +98,7 @@ export default function PublicMenu() {
   }, [categories, activeCategory]);
 
   if (loading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "var(--color-bg)",
-        }}
-      >
-        <div
-          className="spinner"
-          style={{
-            width: "30px",
-            height: "30px",
-            border: "2px solid var(--color-border)",
-            borderTopColor: "var(--color-primary)",
-            borderRadius: "50%",
-          }}
-        ></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error || !restaurant) {
@@ -180,7 +128,7 @@ export default function PublicMenu() {
           ...(restaurant.primary_color && restaurant.primary_color !== "#000000"
             ? { "--color-primary": restaurant.primary_color }
             : {}),
-        } as React.CSSProperties
+        } as CSSProperties
       }
     >
       {/* Header */}
@@ -378,7 +326,7 @@ export default function PublicMenu() {
                               whiteSpace: "nowrap",
                             }}
                           >
-                            {(restaurant as any).currency_symbol || "$"}
+                            {restaurant.currency_symbol || "$"}
                             {item.price.toFixed(2)}
                           </span>
                         </div>

@@ -1,11 +1,13 @@
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
 import { Save, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../components/DashboardLayout";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { supabase } from "../lib/supabase";
-import type { Database } from "../types/supabase";
-
-type Restaurant = Database["public"]["Tables"]["restaurants"]["Row"];
+import { fetchRestaurantByOwner } from "../lib/menuData";
+import { uploadMenuImage } from "../lib/imageUpload";
+import type { Restaurant } from "../types/menu";
 
 export default function Settings() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -20,61 +22,43 @@ export default function Settings() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetchRestaurant();
-  }, []);
-
-  const fetchRestaurant = async () => {
+  const fetchRestaurant = useCallback(async () => {
     const {
       data: { session },
     } = await supabase.auth.getSession();
     if (session) {
-      const { data } = await supabase
-        .from("restaurants")
-        .select("*")
-        .eq("owner_id", session.user.id)
-        .limit(1)
-        .single();
+      const data = await fetchRestaurantByOwner(session.user.id);
 
       if (data) {
         setRestaurant(data);
-        setCurrencySymbol((data as any).currency_symbol || "$");
+        setCurrencySymbol(data.currency_symbol || "$");
         setPrimaryColor(data.primary_color || "#000000");
         setRestaurantName(data.name || "");
       }
     }
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    void Promise.resolve().then(fetchRestaurant);
+  }, [fetchRestaurant]);
 
   const uploadImage = async (rawFile: File): Promise<string | null> => {
     if (!restaurant) return null;
+    const publicUrl = await uploadMenuImage(rawFile, restaurant.id, {
+      maxWidth: 600,
+      quality: 0.9,
+      prefix: "logo",
+    });
 
-    // Compress logo (max 600px width for logo)
-    const { compressImage } = await import("../lib/imageOptimization");
-    const file = await compressImage(rawFile, 600, 0.9);
-
-    const fileExt = file.name.split(".").pop();
-    const fileName = `logo_${restaurant.id}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-    const filePath = `${restaurant.id}/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("menu-images")
-      .upload(filePath, file);
-
-    if (uploadError) {
-      console.error("Error uploading image:", uploadError);
+    if (!publicUrl) {
       alert("Failed to upload logo.");
-      return null;
     }
 
-    const { data } = supabase.storage
-      .from("menu-images")
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
+    return publicUrl;
   };
 
-  const saveSettings = async (e: React.FormEvent) => {
+  const saveSettings = async (e: FormEvent) => {
     e.preventDefault();
     if (!restaurant) return;
 
@@ -105,6 +89,7 @@ export default function Settings() {
       setRestaurant({
         ...restaurant,
         name: restaurantName,
+        currency_symbol: currencySymbol,
         primary_color: primaryColor,
         logo_url: logoUrl,
       });
@@ -115,20 +100,7 @@ export default function Settings() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div
-          style={{ display: "flex", justifyContent: "center", padding: "4rem" }}
-        >
-          <div
-            className="spinner"
-            style={{
-              width: "30px",
-              height: "30px",
-              border: "2px solid var(--color-border)",
-              borderTopColor: "var(--color-primary)",
-              borderRadius: "50%",
-            }}
-          ></div>
-        </div>
+        <LoadingSpinner label="Loading settings" />
       </DashboardLayout>
     );
   }

@@ -1,5 +1,5 @@
 export async function compressImage(file: File, maxWidth = 1200, quality = 0.8): Promise<File> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // Check if the file is already a lightweight format or not an image
     if (!file.type.startsWith('image/') || file.type === 'image/svg+xml' || file.type === 'image/gif') {
       return resolve(file);

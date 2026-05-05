@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { ExternalLink, Printer, Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../components/DashboardLayout";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { supabase } from "../lib/supabase";
-import type { Database } from "../types/supabase";
-
-type Restaurant = Database["public"]["Tables"]["restaurants"]["Row"];
+import { fetchRestaurantByOwner } from "../lib/menuData";
+import type { Restaurant } from "../types/menu";
 
 export default function Dashboard() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -20,27 +21,16 @@ export default function Dashboard() {
     [],
   );
 
-  useEffect(() => {
-    checkSession();
-  }, []);
-
-  const checkSession = async () => {
+  const checkSession = useCallback(async () => {
     const {
       data: { session },
     } = await supabase.auth.getSession();
     if (session) {
       setUserId(session.user.id);
-      // Fetch restaurant owned by this user
-      const { data } = await supabase
-        .from("restaurants")
-        .select("*")
-        .eq("owner_id", session.user.id)
-        .limit(1)
-        .maybeSingle();
+      const data = await fetchRestaurantByOwner(session.user.id);
 
       if (data) {
         setRestaurant(data);
-        // Store for other components that might need it synchronously
         localStorage.setItem("menuqr_restaurant_id", data.id);
 
         // Fetch views for analytics
@@ -77,9 +67,13 @@ export default function Dashboard() {
       }
     }
     setLoading(false);
-  };
+  }, []);
 
-  const createRestaurant = async (e: React.FormEvent) => {
+  useEffect(() => {
+    void Promise.resolve().then(checkSession);
+  }, [checkSession]);
+
+  const createRestaurant = async (e: FormEvent) => {
     e.preventDefault();
     if (!newRestaurantName.trim() || !userId) return;
 
@@ -101,26 +95,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "var(--color-bg)",
-        }}
-      >
-        <div
-          className="spinner"
-          style={{
-            width: "30px",
-            height: "30px",
-            border: "2px solid var(--color-border)",
-            borderTopColor: "var(--color-primary)",
-            borderRadius: "50%",
-          }}
-        ></div>
-      </div>
+      <LoadingSpinner />
     );
   }
 
@@ -206,7 +181,7 @@ export default function Dashboard() {
       const pngUrl = canvas
         .toDataURL("image/png")
         .replace("image/png", "image/octet-stream");
-      let downloadLink = document.createElement("a");
+      const downloadLink = document.createElement("a");
       downloadLink.href = pngUrl;
       downloadLink.download = `menu-qr-${restaurant.name.replace(/\s+/g, "-").toLowerCase()}.png`;
       document.body.appendChild(downloadLink);

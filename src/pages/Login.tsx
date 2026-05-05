@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { QrCode } from 'lucide-react'
@@ -27,7 +28,7 @@ export default function Login() {
     return () => subscription.unsubscribe()
   }, [navigate])
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleAuth = async (e: FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -48,8 +49,8 @@ export default function Login() {
         })
         if (error) throw error
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during authentication')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred during authentication')
     } finally {
       setLoading(false)
     }
