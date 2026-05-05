@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Save } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { Save, Upload } from 'lucide-react'
 import DashboardLayout from '../components/DashboardLayout'
 import { supabase } from '../lib/supabase'
 import type { Database } from '../types/supabase'
@@ -12,6 +12,11 @@ export default function Settings() {
   const [saving, setSaving] = useState(false)
   
   const [currencySymbol, setCurrencySymbol] = useState('$')
+  const [primaryColor, setPrimaryColor] = useState('#000000')
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [restaurantName, setRestaurantName] = useState('')
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchRestaurant()
@@ -29,22 +34,61 @@ export default function Settings() {
       
       if (data) {
         setRestaurant(data)
-        // Since we didn't add currency_symbol to the TS types yet, we use any or fallback
         setCurrencySymbol((data as any).currency_symbol || '$')
+        setPrimaryColor(data.primary_color || '#000000')
+        setRestaurantName(data.name || '')
       }
     }
     setLoading(false)
   }
+
+  const uploadImage = async (rawFile: File): Promise<string | null> => {
+    if (!restaurant) return null;
+    
+    // Compress logo (max 600px width for logo)
+    const { compressImage } = await import('../lib/imageOptimization');
+    const file = await compressImage(rawFile, 600, 0.9);
+    
+    const fileExt = file.name.split(".").pop();
+    const fileName = `logo_${restaurant.id}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+    const filePath = `${restaurant.id}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("menu-images")
+      .upload(filePath, file);
+
+    if (uploadError) {
+      console.error("Error uploading image:", uploadError);
+      alert("Failed to upload logo.");
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from("menu-images")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
 
   const saveSettings = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!restaurant) return
 
     setSaving(true)
+    
+    let logoUrl = restaurant.logo_url;
+    if (logoFile) {
+      const uploadedUrl = await uploadImage(logoFile);
+      if (uploadedUrl) logoUrl = uploadedUrl;
+    }
+
     const { error } = await supabase
       .from('restaurants')
       .update({
-        currency_symbol: currencySymbol
+        name: restaurantName,
+        currency_symbol: currencySymbol,
+        primary_color: primaryColor,
+        logo_url: logoUrl
       })
       .eq('id', restaurant.id)
 
@@ -52,6 +96,9 @@ export default function Settings() {
       alert('Error saving settings: ' + error.message)
     } else {
       alert('Settings saved successfully!')
+      setLogoFile(null)
+      // Update local state
+      setRestaurant({ ...restaurant, name: restaurantName, primary_color: primaryColor, logo_url: logoUrl })
     }
     setSaving(false)
   }
@@ -87,7 +134,115 @@ export default function Settings() {
         <div className="card" style={{ border: 'none', background: 'var(--color-surface)', maxWidth: '600px' }}>
           <div className="card-body">
             <form onSubmit={saveSettings} className="flex flex-col gap-6">
+
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Restaurant Name</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  value={restaurantName} 
+                  onChange={e => setRestaurantName(e.target.value)}
+                  placeholder="e.g. My Awesome Cafe"
+                  required
+                />
+              </div>
               
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Restaurant Logo</label>
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                  This logo will appear at the top of your public menu.
+                </p>
+                <div style={{ display: "flex", gap: "1rem", alignItems: "center", marginTop: '0.5rem' }}>
+                  {logoFile || restaurant.logo_url ? (
+                    <div
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        flexShrink: 0,
+                        borderRadius: "var(--radius-sm)",
+                        overflow: "hidden",
+                        border: "1px solid var(--color-border)",
+                        backgroundColor: "white",
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <img
+                        src={logoFile ? URL.createObjectURL(logoFile) : restaurant.logo_url!}
+                        alt="Logo Preview"
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </div>
+                  ) : null}
+                  <div
+                    className="form-input"
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload size={16} color="var(--color-text-muted)" />
+                    <span
+                      style={{
+                        fontSize: "0.9rem",
+                        color: logoFile
+                          ? "var(--color-text)"
+                          : "var(--color-text-muted)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {logoFile ? logoFile.name : (restaurant.logo_url ? "Replace Logo" : "Upload Logo")}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setLogoFile(e.target.files[0]);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Brand Color</label>
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                  Choose a primary color for your menu to match your brand.
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input 
+                    type="color" 
+                    value={primaryColor} 
+                    onChange={e => setPrimaryColor(e.target.value)}
+                    style={{ 
+                      width: '50px', 
+                      height: '50px', 
+                      padding: 0, 
+                      border: 'none', 
+                      borderRadius: 'var(--radius-sm)', 
+                      cursor: 'pointer',
+                      backgroundColor: 'transparent'
+                    }}
+                  />
+                  <span style={{ fontFamily: 'monospace', color: 'var(--color-text-muted)' }}>{primaryColor.toUpperCase()}</span>
+                </div>
+              </div>
+
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Currency Symbol</label>
                 <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>

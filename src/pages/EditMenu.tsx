@@ -103,8 +103,13 @@ export default function EditMenu() {
     setLoading(false);
   };
 
-  const uploadImage = async (file: File): Promise<string | null> => {
+  const uploadImage = async (rawFile: File): Promise<string | null> => {
     if (!restaurantId) return null;
+    
+    // Compress image before upload (max 800px width for menu items)
+    const { compressImage } = await import('../lib/imageOptimization');
+    const file = await compressImage(rawFile, 800, 0.8);
+    
     const fileExt = file.name.split(".").pop();
     const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
     const filePath = `${restaurantId}/${fileName}`;

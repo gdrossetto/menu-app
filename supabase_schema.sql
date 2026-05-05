@@ -39,10 +39,18 @@ create table public.menu_items (
     order_index integer default 0 not null
 );
 
+-- Menu Views Table (Analytics)
+create table public.menu_views (
+    id uuid default uuid_generate_v4() primary key,
+    restaurant_id uuid references public.restaurants(id) on delete cascade not null,
+    viewed_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- Enable RLS
 alter table public.restaurants enable row level security;
 alter table public.categories enable row level security;
 alter table public.menu_items enable row level security;
+alter table public.menu_views enable row level security;
 
 -- Policies for public access (Read-Only)
 create policy "Allow public read access on restaurants"
@@ -107,6 +115,17 @@ create policy "Allow owners to delete menu items"
     on public.menu_items for delete 
     using (
         exists (select 1 from public.categories c join public.restaurants r on c.restaurant_id = r.id where c.id = category_id and r.owner_id = auth.uid())
+    );
+
+-- Policies for menu views
+create policy "Allow public to insert menu views"
+    on public.menu_views for insert
+    with check (true);
+
+create policy "Allow owners to read menu views"
+    on public.menu_views for select
+    using (
+        exists (select 1 from public.restaurants r where r.id = restaurant_id and r.owner_id = auth.uid())
     );
 
 -- Create a storage bucket for menu images

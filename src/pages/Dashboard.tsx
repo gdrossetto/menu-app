@@ -12,6 +12,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [newRestaurantName, setNewRestaurantName] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
+  
+  const [timeframe, setTimeframe] = useState<'7' | '30'>('7')
+  const [chartData, setChartData] = useState<{ date: string, count: number }[]>([])
 
   useEffect(() => {
     checkSession()
@@ -33,6 +36,34 @@ export default function Dashboard() {
         setRestaurant(data)
         // Store for other components that might need it synchronously
         localStorage.setItem('menuqr_restaurant_id', data.id)
+        
+        // Fetch views for analytics
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const { data: views } = await supabase
+          .from('menu_views')
+          .select('viewed_at')
+          .eq('restaurant_id', data.id)
+          .gte('viewed_at', thirtyDaysAgo.toISOString())
+          
+        if (views) {
+          // Aggregate by day
+          const counts: Record<string, number> = {};
+          // Initialize last 30 days with 0
+          for (let i = 29; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            counts[d.toISOString().split('T')[0]] = 0;
+          }
+          
+          views.forEach(v => {
+            const dateStr = v.viewed_at.split('T')[0];
+            if (counts[dateStr] !== undefined) counts[dateStr]++;
+          });
+          
+          setChartData(Object.entries(counts).map(([date, count]) => ({ date, count })));
+        }
       } else {
         localStorage.removeItem('menuqr_restaurant_id')
       }
@@ -95,6 +126,7 @@ export default function Dashboard() {
   }
 
   const publicUrl = `${window.location.origin}/m/${restaurant.id}`
+  const filteredChartData = timeframe === '7' ? chartData.slice(-7) : chartData;
 
   return (
     <DashboardLayout>
@@ -130,6 +162,72 @@ export default function Dashboard() {
           </div>
 
           <div className="flex flex-col gap-4">
+            <div className="card" style={{ border: 'none', background: 'var(--color-surface)' }}>
+              <div className="card-body">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Menu Views</h3>
+                  <select 
+                    value={timeframe} 
+                    onChange={(e) => setTimeframe(e.target.value as '7' | '30')}
+                    style={{ 
+                      padding: '0.25rem 0.5rem', 
+                      borderRadius: 'var(--radius-sm)', 
+                      border: '1px solid var(--color-border)',
+                      fontSize: '0.85rem',
+                      background: 'white'
+                    }}
+                  >
+                    <option value="7">Last 7 Days</option>
+                    <option value="30">Last 30 Days</option>
+                  </select>
+                </div>
+
+                <div style={{ height: '150px', display: 'flex', alignItems: 'flex-end', gap: '4px', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
+                  {filteredChartData.length === 0 ? (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                      No views yet. Share your link!
+                    </div>
+                  ) : (
+                    filteredChartData.map((d, i) => {
+                      const maxCount = Math.max(...filteredChartData.map(c => c.count), 1);
+                      const heightPercent = `${(d.count / maxCount) * 100}%`;
+                      return (
+                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', height: '100%' }}>
+                          <div style={{ 
+                            flex: 1, 
+                            width: '100%', 
+                            display: 'flex', 
+                            alignItems: 'flex-end',
+                            justifyContent: 'center',
+                            position: 'relative'
+                          }}>
+                            <div 
+                              title={`${d.count} views on ${d.date}`}
+                              style={{ 
+                                width: timeframe === '30' ? '100%' : '20px', 
+                                maxWidth: '30px',
+                                height: heightPercent, 
+                                backgroundColor: 'var(--color-primary)', 
+                                borderRadius: '4px 4px 0 0',
+                                opacity: 0.8,
+                                minHeight: d.count > 0 ? '4px' : '0'
+                              }} 
+                            />
+                          </div>
+                          <span style={{ fontSize: '0.6rem', color: 'var(--color-text-muted)', display: timeframe === '30' && i % 5 !== 0 ? 'none' : 'block' }}>
+                            {d.date.split('-')[2]}
+                          </span>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+                <div style={{ textAlign: 'center', marginTop: '1rem', fontWeight: 600, fontSize: '1.2rem', color: 'var(--color-primary)' }}>
+                  {filteredChartData.reduce((acc, curr) => acc + curr.count, 0)} <span style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', fontWeight: 400 }}>total views</span>
+                </div>
+              </div>
+            </div>
+
             <div className="card" style={{ border: 'none', background: 'var(--color-surface)' }}>
               <div className="card-body">
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Quick Actions</h3>

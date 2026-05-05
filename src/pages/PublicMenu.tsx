@@ -17,6 +17,7 @@ export default function PublicMenu() {
   const [error, setError] = useState('')
 
   const [activeCategory, setActiveCategory] = useState<string>('')
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
   useEffect(() => {
     if (restaurantId) {
@@ -64,6 +65,33 @@ export default function PublicMenu() {
       setItems(itms as unknown as MenuItem[])
     }
     
+    // Update Meta Tags
+    document.title = `${rest.name} - Menu`;
+    
+    // Helper to safely update or create meta tags
+    const setMetaTag = (property: string, content: string) => {
+      let element = document.querySelector(`meta[property="${property}"]`);
+      if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute('property', property);
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+
+    setMetaTag('og:title', `${rest.name} - Menu`);
+    setMetaTag('og:description', `View the digital menu for ${rest.name}.`);
+    if (rest.logo_url) {
+      setMetaTag('og:image', rest.logo_url);
+    }
+    
+    // Log view once per session to prevent strict-mode double-firing and refresh spam
+    const sessionKey = `viewed_${rest.id}`;
+    if (!sessionStorage.getItem(sessionKey)) {
+      sessionStorage.setItem(sessionKey, 'true');
+      supabase.from('menu_views').insert({ restaurant_id: rest.id }).then();
+    }
+
     setLoading(false)
   }
 
@@ -113,7 +141,7 @@ export default function PublicMenu() {
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '4rem' }}>
+    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '4rem', ...((restaurant.primary_color && restaurant.primary_color !== '#000000') ? { '--color-primary': restaurant.primary_color } : {}) } as React.CSSProperties}>
       {/* Header */}
       <header style={{ 
         backgroundColor: 'rgba(255, 255, 255, 0.9)', 
@@ -201,7 +229,10 @@ export default function PublicMenu() {
                         )}
                       </div>
                       {item.image_url && (
-                        <div style={{ width: '120px', flexShrink: 0, padding: '0.75rem', paddingLeft: 0 }}>
+                        <div 
+                          style={{ width: '120px', flexShrink: 0, padding: '0.75rem', paddingLeft: 0, cursor: 'pointer' }}
+                          onClick={() => setSelectedImage(item.image_url)}
+                        >
                           <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
                         </div>
                       )}
@@ -217,6 +248,57 @@ export default function PublicMenu() {
       <footer style={{ textAlign: 'center', padding: '3rem 1.5rem', color: 'var(--color-border)', fontSize: '0.85rem' }}>
         <p style={{ color: 'var(--color-text-muted)' }}>Powered by MenuQR</p>
       </footer>
+
+      {/* Image Lightbox */}
+      {selectedImage && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            zIndex: 100,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '1.5rem',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)'
+          }}
+          onClick={() => setSelectedImage(null)}
+        >
+          <button 
+            onClick={() => setSelectedImage(null)}
+            style={{
+              position: 'absolute',
+              top: '1.5rem',
+              right: '1.5rem',
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              color: 'white',
+              cursor: 'pointer'
+            }}
+          >
+            ✕
+          </button>
+          <img 
+            src={selectedImage} 
+            alt="Full size preview" 
+            style={{ 
+              maxWidth: '100%', 
+              maxHeight: '100%', 
+              objectFit: 'contain',
+              borderRadius: 'var(--radius-sm)'
+            }} 
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   )
 }
