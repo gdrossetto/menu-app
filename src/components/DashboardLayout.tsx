@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react'
 import { LayoutDashboard, Menu, QrCode, Settings, LogOut, Menu as MenuIcon, X } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 
 interface DashboardLayoutProps {
@@ -9,6 +10,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation()
+  const { t, i18n } = useTranslation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
@@ -102,7 +104,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             }}
           >
             <LayoutDashboard size={18} />
-            Overview
+            {t('dashboard.overview', 'Overview')}
           </Link>
           <Link
             to="/dashboard/menu"
@@ -120,7 +122,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             }}
           >
             <Menu size={18} />
-            Edit Menu
+            {t('dashboard.menuItems', 'Edit Menu')}
           </Link>
           <Link
             to="/dashboard/settings"
@@ -138,11 +140,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             }}
           >
             <Settings size={18} />
-            Settings
+            {t('dashboard.settings', 'Settings')}
           </Link>
         </nav>
 
-        <div style={{ padding: '1.5rem', borderTop: isMobile ? '1px solid var(--color-border)' : 'none' }}>
+        <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: isMobile ? '1px solid var(--color-border)' : 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0 0.5rem' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>{t('common.language', 'Language')}</span>
+            <select 
+              value={i18n.language.split('-')[0]} 
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              style={{
+                flex: 1,
+                padding: '0.25rem',
+                fontSize: '0.85rem',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--color-border)',
+                background: 'transparent'
+              }}
+            >
+              <option value="en">{t('common.english', 'English')}</option>
+              <option value="pt">{t('common.portuguese', 'Português')}</option>
+            </select>
+          </div>
+          
           <button 
             className="btn btn-ghost" 
             style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}
@@ -153,7 +174,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             }}
           >
             <LogOut size={18} />
-            Log out
+            {t('dashboard.logout', 'Log out')}
           </button>
         </div>
       </aside>

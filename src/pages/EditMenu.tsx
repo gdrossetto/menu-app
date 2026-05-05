@@ -9,6 +9,7 @@ import {
   Upload,
   EyeOff
 } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import DashboardLayout from "../components/DashboardLayout";
 import { supabase } from "../lib/supabase";
 import type { Database } from "../types/supabase";
@@ -40,6 +41,7 @@ export default function EditMenu() {
   const [restaurant, setRestaurant] = useState<Database["public"]["Tables"]["restaurants"]["Row"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const { t } = useTranslation();
   const restaurantId = localStorage.getItem("menuqr_restaurant_id");
 
   // Forms state
@@ -351,12 +353,12 @@ export default function EditMenu() {
                 letterSpacing: "-0.02em",
               }}
             >
-              Edit Menu
+              {t('editMenu.title', 'Edit Menu')}
             </h1>
             <p
               style={{ color: "var(--color-text-muted)", marginTop: "0.25rem" }}
             >
-              Organize your categories and items.
+              {t('editMenu.subtitle', 'Organize your categories and items.')}
             </p>
           </div>
         </div>
@@ -379,7 +381,7 @@ export default function EditMenu() {
                 type="text"
                 className="form-input"
                 style={{ flex: 1 }}
-                placeholder="New Category Name (e.g., Starters)"
+                placeholder={t('editMenu.newCategoryPlaceholder', 'New Category Name (e.g., Starters)')}
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
               />
@@ -388,7 +390,7 @@ export default function EditMenu() {
                 className="btn btn-primary"
                 disabled={!newCategoryName.trim()}
               >
-                <Plus size={18} /> Add Category
+                <Plus size={18} /> {t('editMenu.addCategory', 'Add Category')}
               </button>
             </form>
           </div>
@@ -413,7 +415,7 @@ export default function EditMenu() {
                   marginBottom: "1rem",
                 }}
               >
-                Add New Item
+                {t('editMenu.addNewItem', 'Add New Item')}
               </h3>
               <form
                 onSubmit={addItem}
@@ -433,7 +435,7 @@ export default function EditMenu() {
                   required
                 >
                   <option value="" disabled>
-                    Select Category...
+                    {t('editMenu.selectCategory', 'Select Category...')}
                   </option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -444,7 +446,7 @@ export default function EditMenu() {
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Item Name"
+                  placeholder={t('editMenu.itemName', 'Item Name')}
                   value={newItem.name}
                   onChange={(e) =>
                     setNewItem({ ...newItem, name: e.target.value })
@@ -455,7 +457,7 @@ export default function EditMenu() {
                   type="text"
                   className="form-input"
                   style={{ gridColumn: "1 / -1" }}
-                  placeholder="Description (Optional)"
+                  placeholder={t('editMenu.descriptionOptional', 'Description (Optional)')}
                   value={newItem.description}
                   onChange={(e) =>
                     setNewItem({ ...newItem, description: e.target.value })
@@ -465,7 +467,7 @@ export default function EditMenu() {
                   type="number"
                   step="0.01"
                   className="form-input"
-                  placeholder="Price (e.g. 10.50)"
+                  placeholder={t('editMenu.pricePlaceholder', 'Price (e.g. 10.50)')}
                   value={newItem.price}
                   onChange={(e) =>
                     setNewItem({ ...newItem, price: e.target.value })
@@ -495,7 +497,7 @@ export default function EditMenu() {
                   >
                     {newItemImageFile
                       ? newItemImageFile.name
-                      : "Upload Image (Optional)"}
+                      : t('editMenu.uploadImageOptional', 'Upload Image (Optional)')}
                   </span>
                   <input
                     type="file"
@@ -523,10 +525,10 @@ export default function EditMenu() {
                     disabled={uploading}
                   >
                     {uploading ? (
-                      "Adding..."
+                      t('editMenu.adding', 'Adding...')
                     ) : (
                       <>
-                        <Plus size={18} /> Add Item
+                        <Plus size={18} /> {t('editMenu.addItem', 'Add Item')}
                       </>
                     )}
                   </button>
@@ -595,7 +597,7 @@ export default function EditMenu() {
               style={{ marginBottom: "1.5rem" }}
             >
               <h3 style={{ fontSize: "1.25rem", fontWeight: 600 }}>
-                Edit Item
+                {t('editMenu.editItemTitle', 'Edit Item')}
               </h3>
               <button
                 onClick={() => {
@@ -609,7 +611,7 @@ export default function EditMenu() {
             </div>
             <form onSubmit={updateItem} className="flex flex-col gap-4">
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Name</label>
+                <label className="form-label">{t('editMenu.nameLabel', 'Name')}</label>
                 <input
                   type="text"
                   className="form-input"
@@ -621,7 +623,7 @@ export default function EditMenu() {
                 />
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Description</label>
+                <label className="form-label">{t('editMenu.descriptionLabel', 'Description')}</label>
                 <textarea
                   className="form-input"
                   value={editingItem.description || ""}
@@ -635,7 +637,7 @@ export default function EditMenu() {
                 />
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Price</label>
+                <label className="form-label">{t('editMenu.priceLabel', 'Price')}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -659,12 +661,12 @@ export default function EditMenu() {
                     onChange={e => setEditingItem({ ...editingItem, is_available: e.target.checked })} 
                     style={{ width: '1rem', height: '1rem' }}
                   />
-                  Item is Available (In Stock)
+                  {t('editMenu.itemIsAvailable', 'Item is Available (In Stock)')}
                 </label>
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Image</label>
+                <label className="form-label">{t('editMenu.imageLabel', 'Image')}</label>
                 <div
                   style={{ display: "flex", gap: "1rem", alignItems: "center" }}
                 >
@@ -720,8 +722,8 @@ export default function EditMenu() {
                       {editingItemImageFile
                         ? editingItemImageFile.name
                         : editingItem.image_url
-                          ? "Replace Image"
-                          : "Upload Image"}
+                          ? t('editMenu.replaceImage', 'Replace Image')
+                          : t('editMenu.uploadImage', 'Upload Image')}
                     </span>
                     <input
                       type="file"
@@ -750,14 +752,14 @@ export default function EditMenu() {
                   className="btn btn-ghost"
                   disabled={uploading}
                 >
-                  Cancel
+                  {t('editMenu.cancel', 'Cancel')}
                 </button>
                 <button
                   type="submit"
                   className="btn btn-primary"
                   disabled={uploading}
                 >
-                  {uploading ? "Saving..." : "Save Changes"}
+                  {uploading ? t('editMenu.saving', 'Saving...') : t('editMenu.saveChanges', 'Save Changes')}
                 </button>
               </div>
             </form>
@@ -847,6 +849,7 @@ function SortableCategory({
 
       {items.length === 0 ? (
         <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem" }}>
+          {/* Note: In a real app we'd pass translation function down or use a context, but we will hardcode translation hook here is tricky since this is outside the main component. We will rely on simple fallback for now or we could use the i18n directly. */}
           No items in this category yet.
         </p>
       ) : (

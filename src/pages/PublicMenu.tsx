@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Image as ImageIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import type { Database } from '../types/supabase'
 
@@ -10,6 +11,7 @@ type MenuItem = Database['public']['Tables']['menu_items']['Row']
 
 export default function PublicMenu() {
   const { restaurantId } = useParams()
+  const { t, i18n } = useTranslation()
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [items, setItems] = useState<MenuItem[]>([])
@@ -154,6 +156,26 @@ export default function PublicMenu() {
         zIndex: 10,
         boxShadow: '0 1px 0 rgba(0,0,0,0.03)'
       }}>
+        
+        {/* Language Switcher */}
+        <div style={{ position: 'absolute', top: '1rem', right: '1.5rem' }}>
+          <select 
+            value={i18n.language.split('-')[0]} 
+            onChange={(e) => i18n.changeLanguage(e.target.value)}
+            style={{
+              padding: '0.25rem 0.5rem',
+              fontSize: '0.8rem',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--color-border)',
+              background: 'white',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="en">EN</option>
+            <option value="pt">PT</option>
+          </select>
+        </div>
+
         {restaurant.logo_url && (
           <img src={restaurant.logo_url} alt={restaurant.name} style={{ height: '60px', margin: '0 auto 1rem', borderRadius: 'var(--radius-sm)' }} />
         )}
@@ -246,7 +268,7 @@ export default function PublicMenu() {
       </main>
       
       <footer style={{ textAlign: 'center', padding: '3rem 1.5rem', color: 'var(--color-border)', fontSize: '0.85rem' }}>
-        <p style={{ color: 'var(--color-text-muted)' }}>Powered by MenuQR</p>
+        <p style={{ color: 'var(--color-text-muted)' }}>{t('publicMenu.poweredBy', 'Powered by MenuQR')}</p>
       </footer>
 
       {/* Image Lightbox */}

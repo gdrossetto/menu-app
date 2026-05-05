@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { Save, Upload } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import DashboardLayout from '../components/DashboardLayout'
 import { supabase } from '../lib/supabase'
 import type { Database } from '../types/supabase'
@@ -10,6 +11,7 @@ export default function Settings() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const { t } = useTranslation()
   
   const [currencySymbol, setCurrencySymbol] = useState('$')
   const [primaryColor, setPrimaryColor] = useState('#000000')
@@ -127,8 +129,8 @@ export default function Settings() {
     <DashboardLayout>
       <div className="animate-fade-in">
         <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-primary)', letterSpacing: '-0.02em' }}>Settings</h1>
-          <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>Configure your brand and localization.</p>
+          <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-primary)', letterSpacing: '-0.02em' }}>{t('settings.title', 'Settings')}</h1>
+          <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>{t('settings.subtitle', 'Configure your brand and localization.')}</p>
         </div>
 
         <div className="card" style={{ border: 'none', background: 'var(--color-surface)', maxWidth: '600px' }}>
@@ -136,21 +138,21 @@ export default function Settings() {
             <form onSubmit={saveSettings} className="flex flex-col gap-6">
 
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Restaurant Name</label>
+                <label className="form-label">{t('settings.restaurantName', 'Restaurant Name')}</label>
                 <input 
                   type="text" 
                   className="form-input" 
                   value={restaurantName} 
                   onChange={e => setRestaurantName(e.target.value)}
-                  placeholder="e.g. My Awesome Cafe"
+                  placeholder={t('settings.restaurantNamePlaceholder', 'e.g. My Awesome Cafe')}
                   required
                 />
               </div>
               
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Restaurant Logo</label>
+                <label className="form-label">{t('settings.restaurantLogo', 'Restaurant Logo')}</label>
                 <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
-                  This logo will appear at the top of your public menu.
+                  {t('settings.logoDescription', 'This logo will appear at the top of your public menu.')}
                 </p>
                 <div style={{ display: "flex", gap: "1rem", alignItems: "center", marginTop: '0.5rem' }}>
                   {logoFile || restaurant.logo_url ? (
@@ -202,7 +204,7 @@ export default function Settings() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {logoFile ? logoFile.name : (restaurant.logo_url ? "Replace Logo" : "Upload Logo")}
+                      {logoFile ? logoFile.name : (restaurant.logo_url ? t('editMenu.replaceImage', 'Replace Image') : t('editMenu.uploadImage', 'Upload Image'))}
                     </span>
                     <input
                       type="file"
@@ -220,9 +222,9 @@ export default function Settings() {
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Brand Color</label>
+                <label className="form-label">{t('settings.brandColor', 'Brand Color')}</label>
                 <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
-                  Choose a primary color for your menu to match your brand.
+                  {t('settings.brandColorDescription', 'Choose a primary color for your menu to match your brand.')}
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <input 
@@ -244,9 +246,9 @@ export default function Settings() {
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Currency Symbol</label>
+                <label className="form-label">{t('settings.currencySymbol', 'Currency Symbol')}</label>
                 <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
-                  This symbol will be displayed next to prices on your public menu.
+                  {t('settings.currencyDescription', 'This symbol will be displayed next to prices on your public menu.')}
                 </p>
                 <select 
                   className="form-input" 
@@ -266,7 +268,7 @@ export default function Settings() {
 
               <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
                 <button type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? 'Saving...' : <><Save size={18} /> Save Settings</>}
+                  {saving ? t('editMenu.saving', 'Saving...') : <><Save size={18} /> {t('settings.saveSettings', 'Save Settings')}</>}
                 </button>
               </div>
 
