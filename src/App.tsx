@@ -5,6 +5,7 @@ import EditMenu from './pages/EditMenu'
 import PublicMenu from './pages/PublicMenu'
 import Login from './pages/Login'
 import Settings from './pages/Settings'
+import PrintMenu from './pages/PrintMenu'
 import { supabase } from './lib/supabase'
 
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -69,6 +70,7 @@ function App() {
         
         {/* Public Routes */}
         <Route path="/m/:restaurantId" element={<PublicMenu />} />
+        <Route path="/m/:restaurantId/print" element={<PrintMenu />} />
       </Routes>
     </Router>
   )

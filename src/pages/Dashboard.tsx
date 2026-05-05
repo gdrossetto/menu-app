@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { QRCodeSVG } from 'qrcode.react'
-import { ExternalLink, Printer } from 'lucide-react'
+import { QRCodeCanvas } from 'qrcode.react'
+import { ExternalLink, Printer, Download } from 'lucide-react'
 import DashboardLayout from '../components/DashboardLayout'
 import { supabase } from '../lib/supabase'
 import type { Database } from '../types/supabase'
@@ -128,6 +128,21 @@ export default function Dashboard() {
   const publicUrl = `${window.location.origin}/m/${restaurant.id}`
   const filteredChartData = timeframe === '7' ? chartData.slice(-7) : chartData;
 
+  const downloadQRCode = () => {
+    const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+    if (canvas) {
+      const pngUrl = canvas
+        .toDataURL("image/png")
+        .replace("image/png", "image/octet-stream");
+      let downloadLink = document.createElement("a");
+      downloadLink.href = pngUrl;
+      downloadLink.download = `menu-qr-${restaurant.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
@@ -139,25 +154,32 @@ export default function Dashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
           <div className="card" style={{ border: 'none', background: 'var(--color-surface)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem 2rem' }}>
             <div style={{ padding: '1rem', background: 'white', borderRadius: '1.5rem', boxShadow: 'var(--shadow-md)', marginBottom: '2rem' }}>
-              <QRCodeSVG value={publicUrl} size={180} level="H" includeMargin={true} />
+              <QRCodeCanvas id="qr-canvas" value={publicUrl} size={180} level="H" includeMargin={true} />
             </div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Your QR Code</h2>
             <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>
               Customers can scan this to view your menu instantly.
             </p>
-            <div className="flex gap-3" style={{ width: '100%' }}>
-              <a href={publicUrl} target="_blank" rel="noreferrer" className="btn btn-outline" style={{ flex: 1, padding: '0.75rem' }}>
-                <ExternalLink size={18} /> Open
-              </a>
+            <div className="flex gap-2" style={{ width: '100%', flexWrap: 'wrap', justifyContent: 'center' }}>
               <button 
                 className="btn btn-primary" 
-                style={{ flex: 1, padding: '0.75rem' }}
+                style={{ flex: '1 1 auto', padding: '0.75rem', minWidth: '100px' }}
+                onClick={downloadQRCode}
+              >
+                <Download size={18} /> Save
+              </button>
+              <button 
+                className="btn btn-outline" 
+                style={{ flex: '1 1 auto', padding: '0.75rem', minWidth: '100px' }}
                 onClick={() => {
-                  window.print()
+                  window.open(`/m/${restaurant.id}/print`, '_blank')
                 }}
               >
                 <Printer size={18} /> Print
               </button>
+              <a href={publicUrl} target="_blank" rel="noreferrer" className="btn btn-outline" style={{ flex: '1 1 auto', padding: '0.75rem', minWidth: '100px' }}>
+                <ExternalLink size={18} /> Open
+              </a>
             </div>
           </div>
 
