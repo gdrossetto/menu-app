@@ -1,14 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Plus, X, Upload } from "lucide-react";
+import { FileUp, Plus, X, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../components/DashboardLayout";
 import LoadingSpinner from "../components/LoadingSpinner";
+import MenuImportModal from "../components/MenuImportModal";
 import SortableCategory from "../components/SortableCategory";
 import { supabase } from "../lib/supabase";
 import { fetchMenuData as fetchRestaurantMenuData, sortItemsForCategory } from "../lib/menuData";
 import { uploadMenuImage } from "../lib/imageUpload";
-import type { Category, MenuItem, Restaurant } from "../types/menu";
+import type {
+  Category,
+  MenuImportDraftCategory,
+  MenuImportProposal,
+  MenuItem,
+  Restaurant,
+} from "../types/menu";
 
 import {
   DndContext,
@@ -32,8 +39,11 @@ export default function EditMenu() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isImportingMenu, setIsImportingMenu] = useState(false);
   const { t } = useTranslation();
   const restaurantId = localStorage.getItem("menuqr_restaurant_id");
+  const hasExistingMenuItems = items.length > 0;
 
   // Forms state
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -286,6 +296,77 @@ export default function EditMenu() {
     setUploading(false);
   };
 
+  const importMenuDraft = async (proposal: MenuImportProposal) => {
+    if (!restaurantId) return;
+
+    setIsImportingMenu(true);
+
+    try {
+      const categoryItemsCount = new Map<string, number>();
+      const categoryByName = new Map<string, Category>();
+
+      categories.forEach((category) => {
+        categoryByName.set(normalizeCategoryKey(category.name), category);
+        categoryItemsCount.set(
+          category.id,
+          items.filter((item) => item.category_id === category.id).length,
+        );
+      });
+
+      const createdCategories: Category[] = [];
+      const createdItems: MenuItem[] = [];
+
+      for (const draftCategory of proposal.categories) {
+        const categoryName = draftCategory.name.trim();
+        if (!categoryName) continue;
+
+        const targetCategory = await resolveImportCategory({
+          draftCategory,
+          restaurantId,
+          categories,
+          categoryByName,
+          createdCategories,
+        });
+
+        if (!targetCategory) continue;
+
+        const startingOrder = categoryItemsCount.get(targetCategory.id) || 0;
+        const validItems = buildImportableItems(
+          draftCategory,
+          targetCategory.id,
+          startingOrder,
+        );
+
+        if (validItems.length === 0) continue;
+
+        const { data: insertedItems, error } = await supabase
+          .from("menu_items")
+          .insert(validItems)
+          .select();
+
+        if (error) {
+          throw error;
+        }
+
+        categoryItemsCount.set(targetCategory.id, startingOrder + validItems.length);
+        createdItems.push(...(insertedItems ?? []));
+      }
+
+      setCategories([...categories, ...createdCategories]);
+      setItems([...items, ...createdItems]);
+      setIsImportModalOpen(false);
+    } catch (error) {
+      console.error("Error importing menu draft:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : t("editMenu.importUnexpectedError", "The import failed. Please try again."),
+      );
+    } finally {
+      setIsImportingMenu(false);
+    }
+  };
+
   if (!restaurantId) {
     return (
       <DashboardLayout>
@@ -320,6 +401,117 @@ export default function EditMenu() {
               {t('editMenu.subtitle', 'Organize your categories and items.')}
             </p>
           </div>
+        </div>
+
+        <div
+          className="card"
+          style={{
+            marginBottom: "1.5rem",
+            border: "none",
+            background:
+              "linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-hover) 100%)",
+          }}
+        >
+          <div
+            className="card-body flex flex-col-mobile justify-between items-center"
+            style={{ gap: "1rem" }}
+          >
+            <div style={{ maxWidth: "560px" }}>
+              <p
+                style={{
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "var(--color-primary)",
+                  marginBottom: "0.4rem",
+                }}
+              >
+                {t("editMenu.importSellEyebrow", "Speed up setup")}
+              </p>
+              <h3
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  marginBottom: "0.35rem",
+                }}
+              >
+                {t(
+                  "editMenu.importSellTitle",
+                  "Already have a printed or existing menu?",
+                )}
+              </h3>
+              <p style={{ color: "var(--color-text-muted)", fontSize: "0.94rem" }}>
+                {t(
+                  "editMenu.importSellSubtitle",
+                  "Import a photo or PDF, review the draft, and add the items without rebuilding everything by hand.",
+                )}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setIsImportModalOpen(true)}
+              style={{ whiteSpace: "nowrap" }}
+            >
+              <FileUp size={18} />
+              {t("editMenu.importCta", "Import menu")}
+            </button>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr auto 1fr",
+            alignItems: "center",
+            gap: "1rem",
+            marginBottom: "1.5rem",
+          }}
+        >
+          <div
+            style={{
+              height: "1px",
+              background:
+                "linear-gradient(90deg, rgba(0,0,0,0.04) 0%, var(--color-border) 100%)",
+            }}
+          />
+          <div style={{ textAlign: "center" }}>
+            <p
+              style={{
+                fontSize: "0.78rem",
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: "var(--color-text-muted)",
+                marginBottom: "0.2rem",
+              }}
+            >
+              {t("editMenu.manualDividerEyebrow", "Or")}
+            </p>
+            <p
+              style={{
+                fontSize: "0.96rem",
+                fontWeight: 600,
+                color: "var(--color-text)",
+              }}
+            >
+              {hasExistingMenuItems
+                ? t(
+                    "editMenu.manualDividerTitleExisting",
+                    "Or keep editing your menu manually",
+                  )
+                : t("editMenu.manualDividerTitleEmpty", "Build your menu from scratch")}
+            </p>
+          </div>
+          <div
+            style={{
+              height: "1px",
+              background:
+                "linear-gradient(90deg, var(--color-border) 0%, rgba(0,0,0,0.04) 100%)",
+            }}
+          />
         </div>
 
         {/* Add Category Form */}
@@ -718,6 +910,98 @@ export default function EditMenu() {
           </div>
         </div>
       )}
+
+      {isImportModalOpen && (
+        <MenuImportModal
+          isOpen={isImportModalOpen}
+          isImporting={isImportingMenu}
+          onClose={() => {
+            if (!isImportingMenu) {
+              setIsImportModalOpen(false);
+            }
+          }}
+          onImport={importMenuDraft}
+        />
+      )}
     </DashboardLayout>
   );
+}
+
+async function resolveImportCategory({
+  draftCategory,
+  restaurantId,
+  categories,
+  categoryByName,
+  createdCategories,
+}: {
+  draftCategory: MenuImportDraftCategory;
+  restaurantId: string;
+  categories: Category[];
+  categoryByName: Map<string, Category>;
+  createdCategories: Category[];
+}): Promise<Category | null> {
+  const categoryKey = normalizeCategoryKey(draftCategory.name);
+  if (!categoryKey) return null;
+
+  const existingCategory = categoryByName.get(categoryKey);
+  if (existingCategory) {
+    return existingCategory;
+  }
+
+  const { data, error } = await supabase
+    .from("categories")
+    .insert({
+      restaurant_id: restaurantId,
+      name: draftCategory.name.trim(),
+      order_index: categories.length + createdCategories.length,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  categoryByName.set(categoryKey, data);
+  createdCategories.push(data);
+  return data;
+}
+
+function buildImportableItems(
+  draftCategory: MenuImportDraftCategory,
+  categoryId: string,
+  startingOrder: number,
+) {
+  return draftCategory.items
+    .map((item, index) => ({
+      category_id: categoryId,
+      name: item.name.trim(),
+      description: item.description.trim() || null,
+      price: parseImportedPrice(item.price),
+      image_url: null,
+      order_index: startingOrder + index,
+    }))
+    .filter((item) => item.name && item.price !== null)
+    .map((item) => ({
+      ...item,
+      price: item.price as number,
+    }));
+}
+
+function normalizeCategoryKey(value: string) {
+  return value.trim().toLocaleLowerCase();
+}
+
+function parseImportedPrice(value: string): number | null {
+  const sanitized = value.replace(/[^\d,.-]/g, "").trim();
+  if (!sanitized) {
+    return null;
+  }
+
+  const normalized = sanitized.includes(",") && !sanitized.includes(".")
+    ? sanitized.replace(",", ".")
+    : sanitized.replace(/,/g, "");
+
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
 }

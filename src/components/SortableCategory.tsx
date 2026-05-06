@@ -101,7 +101,7 @@ export default function SortableCategory({
           collisionDetection={closestCenter}
           onDragEnd={onItemDragEnd}
         >
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4" style={{ paddingTop: "0.35rem" }}>
             <SortableContext
               items={items.map((item) => item.id)}
               strategy={verticalListSortingStrategy}

@@ -235,6 +235,10 @@ input, textarea, select {
   animation: spin 1s linear infinite;
 }
 
+.spin {
+  animation: spin 1s linear infinite;
+}
+
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -285,5 +289,9 @@ input, textarea, select {
   
   .modal-content {
     padding: 1.5rem;
+  }
+
+  .menu-import-item-grid {
+    grid-template-columns: 1fr !important;
   }
 }

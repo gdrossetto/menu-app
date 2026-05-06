@@ -10,3 +10,23 @@ export interface MenuData {
   categories: Category[];
   items: MenuItem[];
 }
+
+export interface MenuImportDraftItem {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+}
+
+export interface MenuImportDraftCategory {
+  id: string;
+  name: string;
+  items: MenuImportDraftItem[];
+}
+
+export interface MenuImportProposal {
+  sourceFileName: string;
+  detectedLanguage: string | null;
+  warnings: string[];
+  categories: MenuImportDraftCategory[];
+}
