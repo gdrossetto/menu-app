@@ -47,6 +47,7 @@ export async function syncRestaurantSubscription(
     const { subscription, customerId, restaurantId } = input;
     const firstItem = subscription.items.data[0];
     const isPro = PREMIUM_STATUSES.has(subscription.status);
+    const subscriptionPeriodEnd = getSubscriptionPeriodEnd(subscription);
 
     const { error } = await supabase
       .from("restaurants")
@@ -56,9 +57,7 @@ export async function syncRestaurantSubscription(
         stripe_subscription_id: subscription.id,
         stripe_price_id: firstItem?.price?.id ?? null,
         subscription_status: subscription.status,
-        subscription_current_period_end: subscription.current_period_end
-          ? new Date(subscription.current_period_end * 1000).toISOString()
-          : null,
+        subscription_current_period_end: subscriptionPeriodEnd,
       })
       .eq("id", restaurantId);
 
@@ -127,4 +126,25 @@ export function pickPrimarySubscription(subscriptions: Stripe.Subscription[]) {
 
     return right.created - left.created;
   })[0] ?? null;
+}
+
+function getSubscriptionPeriodEnd(subscription: Stripe.Subscription) {
+  const itemPeriodEnds = subscription.items.data
+    .map((item) => item.current_period_end)
+    .filter((value): value is number => typeof value === "number");
+
+  if (itemPeriodEnds.length > 0) {
+    const earliestPeriodEnd = Math.min(...itemPeriodEnds);
+    return new Date(earliestPeriodEnd * 1000).toISOString();
+  }
+
+  const legacyPeriodEnd = (subscription as Stripe.Subscription & {
+    current_period_end?: number | null;
+  }).current_period_end;
+
+  if (typeof legacyPeriodEnd === "number") {
+    return new Date(legacyPeriodEnd * 1000).toISOString();
+  }
+
+  return null;
 }
