@@ -412,10 +412,7 @@ export default function EditMenu() {
               "linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-hover) 100%)",
           }}
         >
-          <div
-            className="card-body flex flex-col-mobile justify-between items-center"
-            style={{ gap: "1rem" }}
-          >
+          <div className="card-body flex flex-col items-center justify-between gap-4 md:flex-row">
             <div style={{ maxWidth: "560px" }}>
               <p
                 style={{
@@ -524,10 +521,7 @@ export default function EditMenu() {
           }}
         >
           <div className="card-body">
-            <form
-              onSubmit={addCategory}
-              className="flex flex-col-mobile gap-4 items-center"
-            >
+            <form onSubmit={addCategory} className="flex flex-col items-center gap-4 md:flex-row">
               <input
                 type="text"
                 className="form-input"
@@ -570,12 +564,7 @@ export default function EditMenu() {
               </h3>
               <form
                 onSubmit={addItem}
-                className="grid-mobile-1"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "1rem",
-                }}
+                className="grid grid-cols-1 gap-4 md:grid-cols-2"
               >
                 <select
                   className="form-input"

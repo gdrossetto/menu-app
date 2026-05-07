@@ -182,7 +182,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <main style={{ flex: 1, padding: isMobile ? '1.5rem 1rem' : '3rem 2rem', overflowY: 'auto' }}>
-        <div className="container" style={{ maxWidth: '900px', padding: 0 }}>
+        <div className="mx-auto w-full" style={{ maxWidth: '900px', padding: 0 }}>
           {children}
         </div>
       </main>

@@ -104,36 +104,139 @@
     "portuguese": "Português"
   },
   "landing": {
+    "nav": {
+      "features": "Features",
+      "howItWorks": "How it Works",
+      "pricing": "Pricing",
+      "login": "Log in",
+      "getStarted": "Get Started",
+      "mobileMenu": "Toggle menu"
+    },
     "hero": {
-      "title": "Modernize your restaurant in seconds",
-      "subtitle": "Create a stunning digital menu with AI, generate a custom QR code, and track your customer visits—all in one place.",
-      "cta": "Start for free"
+      "eyebrow": "AI-Powered Menu Import",
+      "titlePrefix": "The modern menu for",
+      "titleAccent": "modern dining.",
+      "subtitle": "Create, manage, and share your restaurant's digital menu in seconds. No typing required—just upload a photo and let AI build your menu. Beautiful on any device, easy to update, and simple to translate.",
+      "primaryCta": "Start for Free",
+      "secondaryCta": "View Live Demo",
+      "noCard": "No credit card required"
+    },
+    "phone": {
+      "language": "PT",
+      "categories": ["Starters", "Soup & Salad", "Main Course"],
+      "items": [
+        { "name": "Mozzarella Sticks", "price": "R$7.99" },
+        { "name": "Stuffed Mushrooms", "price": "R$8.99" },
+        { "name": "Chicken Tenders", "price": "R$9.99" },
+        { "name": "Bruschetta", "price": "R$6.99" }
+      ]
+    },
+    "qr": {
+      "title": "Your QR Code",
+      "description": "Customers can scan this to view your menu instantly.",
+      "save": "Save",
+      "print": "Print"
+    },
+    "featuresSection": {
+      "title": "Everything you need to run a modern restaurant menu",
+      "subtitle": "Built with cutting-edge tech to ensure speed, reliability, and an incredible user experience for both you and your guests."
     },
     "features": {
-      "aiImport": {
-        "title": "AI Menu Import",
-        "description": "Don't waste hours typing. Just upload a photo or PDF of your current menu and our AI will extract every category, item, and price for you to review."
+      "mobile": {
+        "title": "Mobile-First Menus",
+        "description": "Fast, beautiful, and intuitive menus optimized for the screens your customers already have in their hands."
       },
-      "qrCode": {
-        "title": "Instant QR Codes",
-        "description": "Generate a unique QR code for your restaurant instantly. Download it, print it, and put it on your tables."
+      "qr": {
+        "title": "Instant QR Generation",
+        "description": "Download high-res PNGs for your tables or use our print-optimized layouts to get started instantly."
       },
       "analytics": {
-        "title": "Real-time Analytics",
-        "description": "Understand your customers. Track how many people are viewing your menu daily and optimize your offerings."
+        "title": "Real-Time Analytics",
+        "description": "Track daily menu views, popular categories, and peak scanning times directly from your dashboard."
+      },
+      "translations": {
+        "title": "Smart Translations",
+        "description": "Automatically detect browser language and serve your menu seamlessly in English, Portuguese, and more."
+      },
+      "editor": {
+        "title": "Drag & Drop Editor",
+        "description": "Reorder categories and items instantly with a fluid drag-and-drop interface. Changes are live immediately."
+      },
+      "print": {
+        "title": "Print Optimized",
+        "description": "Need a physical copy? Access a dedicated print view that removes web UI and saves your ink."
       }
     },
-    "howItWorks": {
-      "title": "How it works",
-      "step1": "Upload your menu",
-      "step1Desc": "Upload a photo or PDF of your existing menu.",
-      "step2": "Review & Customize",
-      "step2Desc": "Our AI drafts your menu. You review, edit, and perfect it.",
-      "step3": "Go Digital",
-      "step3Desc": "Your QR code is ready. Share it with your customers."
+    "highlight": {
+      "titleLineOne": "Don't type your menu.",
+      "titleLineTwo": "Just snap a picture.",
+      "description": "Transitioning to digital has never been faster. Our built-in AI import uses advanced vision models to read your physical menu or PDF and instantly convert it into a structured, editable digital draft.",
+      "cta": "See How It Works",
+      "editorCategory": "Starters",
+      "editorItems": [
+        { "name": "Mozzarella Sticks", "price": "R$7.99" },
+        { "name": "Stuffed Mushrooms", "price": "R$8.99" }
+      ],
+      "bullets": [
+        "Recognizes categories, items, descriptions, and prices.",
+        "Safe review workflow: edit before you publish.",
+        "Intelligently merges with existing menu structures.",
+        "Supports empty-menu bootstrapping instantly."
+      ],
+      "modal": {
+        "badge": "AI IMPORT",
+        "title": "Import menu from photo or PDF",
+        "subtitle": "Upload your current menu and we will draft categories and items for review before anything is added.",
+        "dropTitle": "Choose a menu photo or PDF",
+        "dropHint": "Supported formats: JPG, PNG, WebP and PDF. Clear photos and clean PDFs work best.",
+        "browse": "Choose file",
+        "createDraft": "Create draft"
+      }
+    },
+    "pricing": {
+      "title": "Simple, transparent pricing",
+      "subtitle": "Start for free, upgrade when you need advanced insights and AI power.",
+      "period": "/mo",
+      "starter": {
+        "name": "Starter",
+        "description": "Everything you need to digitize your menu.",
+        "price": "$0",
+        "cta": "Get Started",
+        "features": [
+          "Unlimited menu items",
+          "Custom QR code generator",
+          "Mobile-optimized public menu",
+          "Basic color customization",
+          "Drag & drop editor"
+        ]
+      },
+      "professional": {
+        "badge": "Most Popular",
+        "name": "Professional",
+        "description": "For restaurants that want insights and speed.",
+        "price": "$29",
+        "cta": "Start 14-Day Free Trial",
+        "features": [
+          "Everything in Starter",
+          "Unlimited AI Menu Imports",
+          "7 & 30-day view analytics",
+          "Multi-language support (i18n)",
+          "Image optimization & storage",
+          "Dedicated print-ready layouts"
+        ]
+      }
+    },
+    "cta": {
+      "title": "Ready to upgrade your dining experience?",
+      "subtitle": "Join hundreds of restaurants using MenuQR to serve customers faster, update menus instantly, and understand diner behavior.",
+      "primary": "Create Your Free Menu",
+      "secondary": "Contact Sales"
     },
     "footer": {
-      "description": "The simplest way to manage your digital menu."
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "support": "Support",
+      "rights": "All rights reserved."
     }
   }
 }

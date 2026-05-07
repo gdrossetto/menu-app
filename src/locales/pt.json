@@ -104,36 +104,139 @@
     "portuguese": "Português"
   },
   "landing": {
+    "nav": {
+      "features": "Recursos",
+      "howItWorks": "Como Funciona",
+      "pricing": "Preços",
+      "login": "Entrar",
+      "getStarted": "Começar",
+      "mobileMenu": "Alternar menu"
+    },
     "hero": {
-      "title": "Modernize seu restaurante em segundos",
-      "subtitle": "Crie um menu digital incrível com IA, gere um QR code personalizado e acompanhe as visitas dos seus clientes—tudo em um só lugar.",
-      "cta": "Começar gratuitamente"
+      "eyebrow": "Importação de Menu com IA",
+      "titlePrefix": "O menu moderno para",
+      "titleAccent": "restaurantes modernos.",
+      "subtitle": "Crie, gerencie e compartilhe o menu digital do seu restaurante em segundos. Sem digitar tudo: basta enviar uma foto e deixar a IA montar o menu. Bonito em qualquer dispositivo, fácil de atualizar e simples de traduzir.",
+      "primaryCta": "Começar Grátis",
+      "secondaryCta": "Ver Demo Ao Vivo",
+      "noCard": "Sem cartão de crédito"
+    },
+    "phone": {
+      "language": "PT",
+      "categories": ["Entradas", "Sopas e Saladas", "Prato Principal"],
+      "items": [
+        { "name": "Palitos de Muçarela", "price": "R$7.99" },
+        { "name": "Cogumelos Recheados", "price": "R$8.99" },
+        { "name": "Tiras de Frango", "price": "R$9.99" },
+        { "name": "Bruschetta", "price": "R$6.99" }
+      ]
+    },
+    "qr": {
+      "title": "Seu QR Code",
+      "description": "Os clientes podem escanear isso para ver seu menu instantaneamente.",
+      "save": "Salvar",
+      "print": "Imprimir"
+    },
+    "featuresSection": {
+      "title": "Tudo o que você precisa para operar um menu moderno de restaurante",
+      "subtitle": "Construído com tecnologia de ponta para garantir velocidade, confiabilidade e uma experiência incrível tanto para você quanto para seus clientes."
     },
     "features": {
-      "aiImport": {
-        "title": "Importação de Menu com IA",
-        "description": "Não perca horas digitando. Basta enviar uma foto ou PDF do seu menu atual e nossa IA extrairá cada categoria, item e preço para você revisar."
+      "mobile": {
+        "title": "Menus Pensados para Mobile",
+        "description": "Menus rápidos, bonitos e intuitivos, otimizados para as telas que seus clientes já têm nas mãos."
       },
-      "qrCode": {
-        "title": "QR Codes Instantâneos",
-        "description": "Gere um QR code exclusivo para o seu restaurante instantaneamente. Baixe, imprima e coloque nas suas mesas."
+      "qr": {
+        "title": "Geração Instantânea de QR",
+        "description": "Baixe PNGs em alta resolução para suas mesas ou use nossos layouts otimizados para impressão e comece imediatamente."
       },
       "analytics": {
         "title": "Análises em Tempo Real",
-        "description": "Entenda seus clientes. Acompanhe quantas pessoas visualizam seu menu diariamente e otimize suas ofertas."
+        "description": "Acompanhe visualizações diárias do menu, categorias mais acessadas e os horários de pico de escaneamento diretamente no painel."
+      },
+      "translations": {
+        "title": "Traduções Inteligentes",
+        "description": "Detecte automaticamente o idioma do navegador e sirva seu menu de forma fluida em inglês, português e muito mais."
+      },
+      "editor": {
+        "title": "Editor com Drag & Drop",
+        "description": "Reordene categorias e itens instantaneamente com uma interface fluida de arrastar e soltar. As mudanças ficam ao vivo na hora."
+      },
+      "print": {
+        "title": "Otimizado para Impressão",
+        "description": "Precisa de uma cópia física? Acesse uma visualização dedicada para impressão que remove a interface web e economiza tinta."
       }
     },
-    "howItWorks": {
-      "title": "Como funciona",
-      "step1": "Envie seu menu",
-      "step1Desc": "Envie uma foto ou PDF do seu menu atual.",
-      "step2": "Revise e Personalize",
-      "step2Desc": "Nossa IA monta o rascunho. Você revisa, edita e aperfeiçoa.",
-      "step3": "Vá para o Digital",
-      "step3Desc": "Seu QR code está pronto. Compartilhe com seus clientes."
+    "highlight": {
+      "titleLineOne": "Não digite seu menu.",
+      "titleLineTwo": "Basta tirar uma foto.",
+      "description": "Migrar para o digital nunca foi tão rápido. Nossa importação com IA usa modelos avançados de visão para ler seu menu físico ou PDF e convertê-lo instantaneamente em um rascunho digital estruturado e editável.",
+      "cta": "Ver Como Funciona",
+      "editorCategory": "Entradas",
+      "editorItems": [
+        { "name": "Palitos de Muçarela", "price": "R$7.99" },
+        { "name": "Cogumelos Recheados", "price": "R$8.99" }
+      ],
+      "bullets": [
+        "Reconhece categorias, itens, descrições e preços.",
+        "Fluxo seguro de revisão: edite antes de publicar.",
+        "Mescla de forma inteligente com estruturas de menu já existentes.",
+        "Suporta criação instantânea para menus ainda vazios."
+      ],
+      "modal": {
+        "badge": "IMPORTAÇÃO COM IA",
+        "title": "Importar menu por foto ou PDF",
+        "subtitle": "Envie o menu atual e vamos montar um rascunho de categorias e itens para revisão antes de adicionar qualquer coisa.",
+        "dropTitle": "Escolha uma foto do menu ou um PDF",
+        "dropHint": "Formatos suportados: JPG, PNG, WebP e PDF. Fotos nítidas e PDFs limpos funcionam melhor.",
+        "browse": "Escolher arquivo",
+        "createDraft": "Criar rascunho"
+      }
+    },
+    "pricing": {
+      "title": "Preços simples e transparentes",
+      "subtitle": "Comece de graça e evolua quando precisar de insights avançados e do poder da IA.",
+      "period": "/mês",
+      "starter": {
+        "name": "Starter",
+        "description": "Tudo o que você precisa para digitalizar seu menu.",
+        "price": "R$0",
+        "cta": "Começar",
+        "features": [
+          "Itens de menu ilimitados",
+          "Gerador de QR code personalizado",
+          "Menu público otimizado para mobile",
+          "Personalização básica de cores",
+          "Editor com drag & drop"
+        ]
+      },
+      "professional": {
+        "badge": "Mais Popular",
+        "name": "Professional",
+        "description": "Para restaurantes que querem velocidade e visão de negócio.",
+        "price": "R$29",
+        "cta": "Iniciar Teste Grátis de 14 Dias",
+        "features": [
+          "Tudo do Starter",
+          "Importações de menu com IA ilimitadas",
+          "Analytics de visualização em 7 e 30 dias",
+          "Suporte multilíngue (i18n)",
+          "Otimização e armazenamento de imagens",
+          "Layouts dedicados para impressão"
+        ]
+      }
+    },
+    "cta": {
+      "title": "Pronto para elevar a experiência do seu restaurante?",
+      "subtitle": "Junte-se a centenas de restaurantes que usam o MenuQR para atender mais rápido, atualizar menus instantaneamente e entender melhor o comportamento dos clientes.",
+      "primary": "Criar Meu Menu Grátis",
+      "secondary": "Falar com Vendas"
     },
     "footer": {
-      "description": "A maneira mais simples de gerenciar seu menu digital."
+      "terms": "Termos",
+      "privacy": "Privacidade",
+      "support": "Suporte",
+      "rights": "Todos os direitos reservados."
     }
   }
 }
