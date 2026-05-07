@@ -10,6 +10,7 @@ import {
   hasAiImportAccess,
   openBillingPortal,
   startAiImportCheckout,
+  syncBillingStatus,
 } from "../lib/billing";
 import { supabase } from "../lib/supabase";
 import { fetchRestaurantByOwner } from "../lib/menuData";
@@ -51,6 +52,34 @@ export default function Settings() {
   useEffect(() => {
     void Promise.resolve().then(fetchRestaurant);
   }, [fetchRestaurant]);
+
+  useEffect(() => {
+    if (!restaurant || !location.search.includes("billing=success")) return;
+    if (hasAiImportAccess(restaurant)) return;
+    if (!restaurant.stripe_customer_id) return;
+
+    let active = true;
+
+    void (async () => {
+      try {
+        setBillingLoading(true);
+        await syncBillingStatus();
+        if (active) {
+          await fetchRestaurant();
+        }
+      } catch (error) {
+        console.error("Error syncing billing status:", error);
+      } finally {
+        if (active) {
+          setBillingLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [fetchRestaurant, location.search, restaurant]);
 
   const uploadImage = async (rawFile: File): Promise<string | null> => {
     if (!restaurant) return null;
@@ -350,6 +379,35 @@ export default function Settings() {
             </div>
 
             <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                className="btn btn-outline"
+                disabled={billingLoading}
+                onClick={async () => {
+                  try {
+                    setBillingLoading(true);
+                    await syncBillingStatus();
+                    await fetchRestaurant();
+                  } catch (error) {
+                    alert(
+                      error instanceof Error
+                        ? error.message
+                        : t(
+                            "settings.billingSyncError",
+                            "We could not sync your billing status right now.",
+                          ),
+                    );
+                  } finally {
+                    setBillingLoading(false);
+                  }
+                }}
+              >
+                <Sparkles className="h-4 w-4" />
+                {billingLoading
+                  ? t("settings.syncingBilling", "Syncing billing...")
+                  : t("settings.syncBilling", "Sync billing now")}
+              </button>
+
               {hasAiImportAccess(restaurant) ? (
                 <button
                   type="button"

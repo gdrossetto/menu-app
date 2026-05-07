@@ -108,8 +108,11 @@
     "aiImportFeature": "AI menu import",
     "aiImportFeatureEnabled": "Included in your current plan. Upload a photo or PDF and review the import before publishing.",
     "aiImportFeatureLocked": "Locked on the Free plan. Upgrade to Professional to import photos and PDFs with AI.",
+    "syncBilling": "Sync billing now",
+    "syncingBilling": "Syncing billing...",
     "manageBilling": "Manage billing",
     "upgradePlan": "Upgrade to Professional",
+    "billingSyncError": "We could not sync your billing status right now.",
     "billingPortalError": "We could not open the billing portal right now.",
     "billingCheckoutError": "We could not start checkout right now."
   },

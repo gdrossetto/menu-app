@@ -69,7 +69,7 @@ export async function syncRestaurantSubscription(
     return;
   }
 
-  const { error } = await supabase
+  let query = supabase
     .from("restaurants")
     .update({
       plan_tier: "free",
@@ -79,8 +79,13 @@ export async function syncRestaurantSubscription(
       subscription_status: "canceled",
       subscription_current_period_end: null,
     })
-    .eq("id", input.restaurantId)
-    .eq("stripe_subscription_id", input.canceledSubscriptionId);
+    .eq("id", input.restaurantId);
+
+  if (input.canceledSubscriptionId) {
+    query = query.eq("stripe_subscription_id", input.canceledSubscriptionId);
+  }
+
+  const { error } = await query;
 
   if (error) {
     throw error;
@@ -99,4 +104,27 @@ export function hasAiImportEntitlement(restaurant: {
 
 export function stringifyId(value: string | Stripe.Customer | Stripe.DeletedCustomer | null) {
   return typeof value === "string" ? value : value?.id ?? null;
+}
+
+export function pickPrimarySubscription(subscriptions: Stripe.Subscription[]) {
+  const statusPriority = new Map<string, number>([
+    ["active", 0],
+    ["trialing", 1],
+    ["past_due", 2],
+    ["incomplete", 3],
+    ["unpaid", 4],
+    ["canceled", 5],
+    ["incomplete_expired", 6],
+  ]);
+
+  return [...subscriptions].sort((left, right) => {
+    const leftPriority = statusPriority.get(left.status) ?? 99;
+    const rightPriority = statusPriority.get(right.status) ?? 99;
+
+    if (leftPriority !== rightPriority) {
+      return leftPriority - rightPriority;
+    }
+
+    return right.created - left.created;
+  })[0] ?? null;
 }

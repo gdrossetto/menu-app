@@ -7,7 +7,11 @@ import DashboardLayout from "../components/DashboardLayout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import MenuImportModal from "../components/MenuImportModal";
 import SortableCategory from "../components/SortableCategory";
-import { hasAiImportAccess, startAiImportCheckout } from "../lib/billing";
+import {
+  hasAiImportAccess,
+  startAiImportCheckout,
+  syncBillingStatus,
+} from "../lib/billing";
 import { supabase } from "../lib/supabase";
 import { fetchMenuData as fetchRestaurantMenuData, sortItemsForCategory } from "../lib/menuData";
 import { uploadMenuImage } from "../lib/imageUpload";
@@ -94,6 +98,34 @@ export default function EditMenu() {
   useEffect(() => {
     void Promise.resolve().then(loadMenuData);
   }, [loadMenuData]);
+
+  useEffect(() => {
+    if (!restaurant || !location.search.includes("billing=success")) return;
+    if (hasAiImportAccess(restaurant)) return;
+    if (!restaurant.stripe_customer_id) return;
+
+    let active = true;
+
+    void (async () => {
+      try {
+        setIsRedirectingToCheckout(true);
+        await syncBillingStatus();
+        if (active) {
+          await loadMenuData();
+        }
+      } catch (error) {
+        console.error("Error syncing billing status:", error);
+      } finally {
+        if (active) {
+          setIsRedirectingToCheckout(false);
+        }
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [loadMenuData, location.search, restaurant]);
 
   const uploadImage = async (rawFile: File): Promise<string | null> => {
     if (!restaurantId) return null;

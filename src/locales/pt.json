@@ -108,8 +108,11 @@
     "aiImportFeature": "Importação de menu com IA",
     "aiImportFeatureEnabled": "Incluído no seu plano atual. Envie uma foto ou PDF e revise a importação antes de publicar.",
     "aiImportFeatureLocked": "Bloqueado no plano Grátis. Faça upgrade para o Professional para importar fotos e PDFs com IA.",
+    "syncBilling": "Sincronizar cobrança agora",
+    "syncingBilling": "Sincronizando cobrança...",
     "manageBilling": "Gerenciar cobrança",
     "upgradePlan": "Fazer upgrade para Professional",
+    "billingSyncError": "Não conseguimos sincronizar seu status de cobrança agora.",
     "billingPortalError": "Não conseguimos abrir o portal de cobrança agora.",
     "billingCheckoutError": "Não conseguimos iniciar o checkout agora."
   },

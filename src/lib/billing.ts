@@ -60,3 +60,13 @@ export async function openBillingPortal(returnPath = "/dashboard/settings") {
 
   window.location.assign(portalUrl);
 }
+
+export async function syncBillingStatus() {
+  const { data, error } = await supabase.functions.invoke("sync-billing-status");
+
+  if (error) {
+    throw new Error(error.message || "Unable to sync billing status.");
+  }
+
+  return data;
+}
