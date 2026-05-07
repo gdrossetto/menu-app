@@ -102,5 +102,38 @@
     "language": "Idioma",
     "english": "English",
     "portuguese": "Português"
+  },
+  "landing": {
+    "hero": {
+      "title": "Modernize seu restaurante em segundos",
+      "subtitle": "Crie um menu digital incrível com IA, gere um QR code personalizado e acompanhe as visitas dos seus clientes—tudo em um só lugar.",
+      "cta": "Começar gratuitamente"
+    },
+    "features": {
+      "aiImport": {
+        "title": "Importação de Menu com IA",
+        "description": "Não perca horas digitando. Basta enviar uma foto ou PDF do seu menu atual e nossa IA extrairá cada categoria, item e preço para você revisar."
+      },
+      "qrCode": {
+        "title": "QR Codes Instantâneos",
+        "description": "Gere um QR code exclusivo para o seu restaurante instantaneamente. Baixe, imprima e coloque nas suas mesas."
+      },
+      "analytics": {
+        "title": "Análises em Tempo Real",
+        "description": "Entenda seus clientes. Acompanhe quantas pessoas visualizam seu menu diariamente e otimize suas ofertas."
+      }
+    },
+    "howItWorks": {
+      "title": "Como funciona",
+      "step1": "Envie seu menu",
+      "step1Desc": "Envie uma foto ou PDF do seu menu atual.",
+      "step2": "Revise e Personalize",
+      "step2Desc": "Nossa IA monta o rascunho. Você revisa, edita e aperfeiçoa.",
+      "step3": "Vá para o Digital",
+      "step3Desc": "Seu QR code está pronto. Compartilhe com seus clientes."
+    },
+    "footer": {
+      "description": "A maneira mais simples de gerenciar seu menu digital."
+    }
   }
 }

@@ -102,5 +102,38 @@
     "language": "Language",
     "english": "English",
     "portuguese": "Português"
+  },
+  "landing": {
+    "hero": {
+      "title": "Modernize your restaurant in seconds",
+      "subtitle": "Create a stunning digital menu with AI, generate a custom QR code, and track your customer visits—all in one place.",
+      "cta": "Start for free"
+    },
+    "features": {
+      "aiImport": {
+        "title": "AI Menu Import",
+        "description": "Don't waste hours typing. Just upload a photo or PDF of your current menu and our AI will extract every category, item, and price for you to review."
+      },
+      "qrCode": {
+        "title": "Instant QR Codes",
+        "description": "Generate a unique QR code for your restaurant instantly. Download it, print it, and put it on your tables."
+      },
+      "analytics": {
+        "title": "Real-time Analytics",
+        "description": "Understand your customers. Track how many people are viewing your menu daily and optimize your offerings."
+      }
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "step1": "Upload your menu",
+      "step1Desc": "Upload a photo or PDF of your existing menu.",
+      "step2": "Review & Customize",
+      "step2Desc": "Our AI drafts your menu. You review, edit, and perfect it.",
+      "step3": "Go Digital",
+      "step3Desc": "Your QR code is ready. Share it with your customers."
+    },
+    "footer": {
+      "description": "The simplest way to manage your digital menu."
+    }
   }
 }

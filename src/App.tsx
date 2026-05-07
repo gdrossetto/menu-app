@@ -13,6 +13,7 @@ import PublicMenu from "./pages/PublicMenu";
 import Login from "./pages/Login";
 import Settings from "./pages/Settings";
 import PrintMenu from "./pages/PrintMenu";
+import LandingPage from "./pages/LandingPage";
 import { supabase } from "./lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 
@@ -73,7 +74,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
 
         {/* Protected Dashboard Routes */}
