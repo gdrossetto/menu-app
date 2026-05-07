@@ -14,7 +14,13 @@ create table public.restaurants (
     name text not null,
     logo_url text,
     primary_color text default '#000000',
-    currency_symbol text default '$'
+    currency_symbol text default '$',
+    plan_tier text not null default 'free' check (plan_tier in ('free', 'pro')),
+    stripe_customer_id text unique,
+    stripe_subscription_id text unique,
+    stripe_price_id text,
+    subscription_status text,
+    subscription_current_period_end timestamp with time zone
 );
 
 -- Categories Table

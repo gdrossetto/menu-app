@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Save, Upload } from "lucide-react";
+import { ArrowRight, CreditCard, Save, Sparkles, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import LoadingSpinner from "../components/LoadingSpinner";
+import {
+  getPlanLabel,
+  hasAiImportAccess,
+  openBillingPortal,
+  startAiImportCheckout,
+} from "../lib/billing";
 import { supabase } from "../lib/supabase";
 import { fetchRestaurantByOwner } from "../lib/menuData";
 import { uploadMenuImage } from "../lib/imageUpload";
@@ -13,7 +20,9 @@ export default function Settings() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
   const { t } = useTranslation();
+  const location = useLocation();
 
   const [currencySymbol, setCurrencySymbol] = useState("$");
   const [primaryColor, setPrimaryColor] = useState("#000000");
@@ -265,6 +274,136 @@ export default function Settings() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+
+        <div className="card mt-8 max-w-[600px] border-none bg-app-surface">
+          <div className="card-body flex flex-col gap-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-app-surface-hover px-3 py-1 text-[0.78rem] font-semibold uppercase tracking-[0.05em] text-app-primary">
+                  <CreditCard className="h-3.5 w-3.5" />
+                  {t("settings.billingBadge", "Billing")}
+                </div>
+                <h2 className="text-[1.2rem] font-semibold text-app-text">
+                  {t("settings.billingTitle", "Plan & billing")}
+                </h2>
+                <p className="mt-1 max-w-[480px] text-[0.94rem] text-app-text-muted">
+                  {hasAiImportAccess(restaurant)
+                    ? t(
+                        "settings.billingSubtitlePro",
+                        "Your restaurant can use AI menu import and manage its subscription from here.",
+                      )
+                    : t(
+                        "settings.billingSubtitleFree",
+                        "Upgrade when you want to unlock AI menu import. Everything else in the menu builder stays free.",
+                      )}
+                </p>
+              </div>
+
+              <span className="rounded-full bg-app-surface-hover px-3 py-1.5 text-[0.8rem] font-semibold uppercase tracking-[0.05em] text-app-text">
+                {getPlanLabel(restaurant) === "pro"
+                  ? t("settings.planPro", "Professional")
+                  : t("settings.planFree", "Free")}
+              </span>
+            </div>
+
+            {location.search.includes("billing=success") && (
+              <div className="rounded-[0.75rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-[0.92rem] text-emerald-800">
+                {t(
+                  "settings.billingSuccess",
+                  "Your checkout finished. If your plan does not update immediately, refresh in a few seconds.",
+                )}
+              </div>
+            )}
+
+            {location.search.includes("billing=cancel") && (
+              <div className="rounded-[0.75rem] border border-app-border bg-app-bg px-4 py-3 text-[0.92rem] text-app-text-muted">
+                {t(
+                  "settings.billingCanceled",
+                  "Checkout was canceled. Your current plan has not changed.",
+                )}
+              </div>
+            )}
+
+            <div className="rounded-[1rem] border border-app-border bg-app-bg px-5 py-5">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2 text-[0.95rem] font-medium text-app-text">
+                  <Sparkles className="h-4 w-4" />
+                  {t(
+                    "settings.aiImportFeature",
+                    "AI menu import",
+                  )}
+                </div>
+                <p className="text-[0.92rem] text-app-text-muted">
+                  {hasAiImportAccess(restaurant)
+                    ? t(
+                        "settings.aiImportFeatureEnabled",
+                        "Included in your current plan. Upload a photo or PDF and review the import before publishing.",
+                      )
+                    : t(
+                        "settings.aiImportFeatureLocked",
+                        "Locked on the Free plan. Upgrade to Professional to import photos and PDFs with AI.",
+                      )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {hasAiImportAccess(restaurant) ? (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={billingLoading}
+                  onClick={async () => {
+                    try {
+                      setBillingLoading(true);
+                      await openBillingPortal("/dashboard/settings");
+                    } catch (error) {
+                      alert(
+                        error instanceof Error
+                          ? error.message
+                          : t(
+                              "settings.billingPortalError",
+                              "We could not open the billing portal right now.",
+                            ),
+                      );
+                    } finally {
+                      setBillingLoading(false);
+                    }
+                  }}
+                >
+                  <CreditCard className="h-4 w-4" />
+                  {t("settings.manageBilling", "Manage billing")}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={billingLoading}
+                  onClick={async () => {
+                    try {
+                      setBillingLoading(true);
+                      await startAiImportCheckout("/dashboard/settings");
+                    } catch (error) {
+                      alert(
+                        error instanceof Error
+                          ? error.message
+                          : t(
+                              "settings.billingCheckoutError",
+                              "We could not start checkout right now.",
+                            ),
+                      );
+                    } finally {
+                      setBillingLoading(false);
+                    }
+                  }}
+                >
+                  <ArrowRight className="h-4 w-4" />
+                  {t("settings.upgradePlan", "Upgrade to Professional")}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { FileUp, Plus, X, Upload } from "lucide-react";
+import { ArrowRight, FileUp, Lock, Plus, X, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import MenuImportModal from "../components/MenuImportModal";
 import SortableCategory from "../components/SortableCategory";
+import { hasAiImportAccess, startAiImportCheckout } from "../lib/billing";
 import { supabase } from "../lib/supabase";
 import { fetchMenuData as fetchRestaurantMenuData, sortItemsForCategory } from "../lib/menuData";
 import { uploadMenuImage } from "../lib/imageUpload";
@@ -41,7 +43,9 @@ export default function EditMenu() {
   const [uploading, setUploading] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isImportingMenu, setIsImportingMenu] = useState(false);
+  const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false);
   const { t } = useTranslation();
+  const location = useLocation();
   const restaurantId = localStorage.getItem("menuqr_restaurant_id");
   const hasExistingMenuItems = items.length > 0;
 
@@ -391,6 +395,24 @@ export default function EditMenu() {
           </div>
         </div>
 
+        {location.search.includes("billing=success") && (
+          <div className="mb-6 rounded-[0.75rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-[0.92rem] text-emerald-800">
+            {t(
+              "settings.billingSuccess",
+              "Your checkout finished. If your plan does not update immediately, refresh in a few seconds.",
+            )}
+          </div>
+        )}
+
+        {location.search.includes("billing=cancel") && (
+          <div className="mb-6 rounded-[0.75rem] border border-app-border bg-app-bg px-4 py-3 text-[0.92rem] text-app-text-muted">
+            {t(
+              "settings.billingCanceled",
+              "Checkout was canceled. Your current plan has not changed.",
+            )}
+          </div>
+        )}
+
         <div
           className="card mb-6 border-none bg-gradient-to-b from-app-surface to-app-surface-hover"
         >
@@ -406,21 +428,62 @@ export default function EditMenu() {
                 )}
               </h3>
               <p className="text-[0.94rem] text-app-text-muted">
-                {t(
-                  "editMenu.importSellSubtitle",
-                  "Import a photo or PDF, review the draft, and add the items without rebuilding everything by hand.",
-                )}
+                {hasAiImportAccess(restaurant)
+                  ? t(
+                      "editMenu.importSellSubtitle",
+                      "Import a photo or PDF, review the draft, and add the items without rebuilding everything by hand.",
+                    )
+                  : t(
+                      "editMenu.importSellSubtitleLocked",
+                      "AI import is part of the Professional plan. Upgrade to turn existing photos and PDFs into reviewed menu drafts.",
+                    )}
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setIsImportModalOpen(true)}
-              className="btn btn-primary whitespace-nowrap"
-            >
-              <FileUp size={18} />
-              {t("editMenu.importCta", "Import menu")}
-            </button>
+            {hasAiImportAccess(restaurant) ? (
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="btn btn-primary whitespace-nowrap"
+              >
+                <FileUp size={18} />
+                {t("editMenu.importCta", "Import menu")}
+              </button>
+            ) : (
+              <div className="flex flex-col items-start gap-2 md:items-end">
+                <span className="inline-flex items-center gap-1 rounded-full bg-app-surface px-3 py-1 text-[0.78rem] font-semibold uppercase tracking-[0.05em] text-app-text-muted shadow-app-sm">
+                  <Lock className="h-3.5 w-3.5" />
+                  {t("editMenu.importLockedBadge", "Professional")}
+                </span>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      setIsRedirectingToCheckout(true);
+                      await startAiImportCheckout("/dashboard/menu");
+                    } catch (error) {
+                      alert(
+                        error instanceof Error
+                          ? error.message
+                          : t(
+                              "editMenu.importUpgradeError",
+                              "We could not start checkout right now.",
+                            ),
+                      );
+                    } finally {
+                      setIsRedirectingToCheckout(false);
+                    }
+                  }}
+                  className="btn btn-primary whitespace-nowrap"
+                  disabled={isRedirectingToCheckout}
+                >
+                  <ArrowRight className="h-4 w-4" />
+                  {isRedirectingToCheckout
+                    ? t("editMenu.importUpgradeLoading", "Redirecting...")
+                    : t("editMenu.importUpgradeCta", "Upgrade for AI import")}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

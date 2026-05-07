@@ -5,6 +5,17 @@ export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 export type MenuView = Database["public"]["Tables"]["menu_views"]["Row"];
 
+export type RestaurantPlanTier = "free" | "pro";
+export type StripeSubscriptionStatus =
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "unpaid"
+  | "incomplete"
+  | "incomplete_expired"
+  | null;
+
 export interface MenuData {
   restaurant: Restaurant;
   categories: Category[];

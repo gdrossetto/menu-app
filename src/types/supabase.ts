@@ -18,6 +18,12 @@ export interface Database {
           logo_url: string | null;
           primary_color: string | null;
           currency_symbol: string | null;
+          plan_tier: string;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          stripe_price_id: string | null;
+          subscription_status: string | null;
+          subscription_current_period_end: string | null;
         };
         Insert: {
           id?: string;
@@ -27,6 +33,12 @@ export interface Database {
           logo_url?: string | null;
           primary_color?: string | null;
           currency_symbol?: string | null;
+          plan_tier?: string;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          stripe_price_id?: string | null;
+          subscription_status?: string | null;
+          subscription_current_period_end?: string | null;
         };
         Update: {
           id?: string;
@@ -36,6 +48,12 @@ export interface Database {
           logo_url?: string | null;
           primary_color?: string | null;
           currency_symbol?: string | null;
+          plan_tier?: string;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          stripe_price_id?: string | null;
+          subscription_status?: string | null;
+          subscription_current_period_end?: string | null;
         };
         Relationships: [];
       };

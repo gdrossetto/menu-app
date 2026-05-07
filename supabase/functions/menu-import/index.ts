@@ -1,7 +1,10 @@
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
+import {
+  getRestaurantForOwner,
+  hasAiImportEntitlement,
+} from "../_shared/billing.ts";
+import { requireAuthenticatedUser } from "../_shared/supabase.ts";
 
 const menuImportSchema = {
   type: "object",
@@ -53,6 +56,19 @@ Deno.serve(async (request) => {
   }
 
   try {
+    const user = await requireAuthenticatedUser(request);
+    const restaurant = await getRestaurantForOwner(user.id);
+
+    if (!hasAiImportEntitlement(restaurant)) {
+      return jsonResponse(
+        {
+          error:
+            "AI menu import is available on the Professional plan. Upgrade your subscription to continue.",
+        },
+        403,
+      );
+    }
+
     const openAiKey = Deno.env.get("OPENAI_API_KEY");
     const openAiModel = Deno.env.get("OPENAI_MENU_IMPORT_MODEL") || "gpt-5.4-mini";
 
@@ -162,14 +178,4 @@ function extractOutputText(responseJson: Record<string, unknown>): string | null
   }
 
   return null;
-}
-
-function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      ...corsHeaders,
-      "Content-Type": "application/json",
-    },
-  });
 }

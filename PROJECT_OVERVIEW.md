@@ -4,11 +4,12 @@ MenuQR is a B2B SaaS platform that allows restaurant owners to create and manage
 
 ## 🚀 Tech Stack
 - **Frontend**: React 19, Vite, TypeScript
-- **Styling**: Vanilla CSS (Modern CSS variables, Flexbox/Grid)
+- **Styling**: Tailwind CSS v4 with shared semantic theme tokens in `src/index.css`
 - **Backend/Database**: Supabase (PostgreSQL, Authentication, Storage, Edge Functions)
 - **Icons**: Lucide React
 - **Internationalization**: i18next, react-i18next (Supports English and Brazilian Portuguese)
 - **AI Integration**: OpenAI Responses API via a Supabase Edge Function
+- **Billing**: Stripe Checkout + Customer Portal + webhook-based subscription sync
 - **Utilities**:
   - `@dnd-kit`: For drag-and-drop menu reordering
   - `qrcode.react`: For generating QR codes
@@ -32,17 +33,22 @@ MenuQR is a B2B SaaS platform that allows restaurant owners to create and manage
   - `menuData.ts`: Fetching and sorting helpers for restaurants, categories, and items.
   - `imageUpload.ts`: Shared image upload flow for restaurant/menu assets.
   - `menuImport.ts`: Client-side import orchestration and import-draft normalization.
+  - `billing.ts`: Client-side billing helpers for checkout, portal redirects, and feature gating.
   - `imageOptimization.ts`: Browser-side image compression before upload.
 - `src/types/`:
   - `supabase.ts`: Typed database schema used by the frontend client.
   - `menu.ts`: Shared domain types and import-draft types.
 - `src/locales/`: Translation dictionaries (`en.json`, `pt.json`).
-- `supabase/functions/menu-import/`: Supabase Edge Function that calls OpenAI to extract structured menu data from images or PDFs.
+- `supabase/functions/menu-import/`: Supabase Edge Function that calls OpenAI to extract structured menu data from images or PDFs and enforces billing access.
+- `supabase/functions/create-checkout-session/`: Creates a Stripe Checkout session for the Professional plan.
+- `supabase/functions/create-billing-portal-session/`: Creates a Stripe Customer Portal session.
+- `supabase/functions/stripe-webhook/`: Syncs Stripe subscription events back into Supabase.
+- `supabase/functions/_shared/`: Shared CORS, auth, Supabase, and Stripe helpers for edge functions.
 - `supabase_schema.sql`: The source of truth for the database structure.
 
 ## 📊 Database Schema
 The database is hosted on Supabase and follows this structure:
-- **`restaurants`**: Stores restaurant details (name, owner_id, logo_url, primary_color, currency_symbol).
+- **`restaurants`**: Stores restaurant details (name, owner_id, logo_url, primary_color, currency_symbol) plus billing state (`plan_tier`, Stripe customer/subscription IDs, current subscription status, current period end).
 - **`categories`**: Menu sections (e.g., "Starters", "Main Course"), linked to a restaurant.
 - **`menu_items`**: Individual dishes/drinks, linked to a category. Includes price, description, and image_url.
 - **`menu_views`**: Analytics table tracking every time a public menu is accessed.
@@ -56,6 +62,7 @@ The database is hosted on Supabase and follows this structure:
 6. **AI Menu Import**: Owners can upload a photo or PDF of an existing menu, generate a structured draft, review it in a modal, edit category/item details, and only then import it into the app.
 7. **Safe Import Review Flow**: Import never overwrites the menu blindly. It appends items into existing matching categories when possible, creates missing categories when needed, and supports empty-menu bootstrapping.
 8. **Print Optimization**: A dedicated print view that removes web-only elements (tabs, buttons) and optimizes for ink/paper usage.
+9. **Freemium Billing Model**: Core menu creation remains free. AI menu import is gated behind the Professional plan.
 
 ## 🤖 AI Import Workflow
 The menu import pipeline is intentionally split into two steps:
@@ -70,6 +77,27 @@ Important behavior notes:
 - The import flow is additive. It does not delete or reset existing menu data.
 - If a restaurant already has categories/items, import adds into that existing structure.
 - If a restaurant has no categories/items yet, import creates the necessary categories and items.
+- The `menu-import` edge function checks the restaurant subscription before calling OpenAI, so the premium gate is enforced server-side and not only in the UI.
+
+## 💳 Billing Workflow
+The first paid feature is **AI menu import**.
+
+Implementation shape:
+1. **Checkout**
+   - Authenticated owners start a Stripe Checkout subscription flow from the dashboard.
+   - The checkout session is created server-side using a Stripe price lookup key.
+2. **Webhook sync**
+   - Stripe webhook events update the restaurant row in Supabase with plan tier and subscription status.
+3. **Portal**
+   - Professional users can open the Stripe customer portal to manage payment methods or cancel their subscription.
+4. **Feature gating**
+   - The editor UI teases AI import on the free plan and redirects to checkout.
+   - The edge function blocks direct AI import calls unless the subscription status is eligible (`active`, `trialing`, or `past_due`).
+
+Recommended Stripe setup:
+- One recurring product/price for the Professional plan
+- A stable lookup key stored as `STRIPE_AI_IMPORT_PRICE_LOOKUP_KEY`
+- Stripe-hosted customer portal enabled in the Dashboard
 
 ## 🛠 Setup & Development
 1. **Environment Variables**: Requires `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
@@ -78,8 +106,15 @@ Important behavior notes:
 4. **Edge Function Secrets**:
    - `OPENAI_API_KEY`: Required by `supabase/functions/menu-import`.
    - `OPENAI_MENU_IMPORT_MODEL`: Optional model override. Defaults to `gpt-5.4-mini`.
+   - `STRIPE_SECRET_KEY`: Required by the billing edge functions.
+   - `STRIPE_WEBHOOK_SECRET`: Required by `supabase/functions/stripe-webhook`.
+   - `STRIPE_AI_IMPORT_PRICE_LOOKUP_KEY`: Lookup key for the Professional Stripe price.
+   - `SITE_URL`: Recommended fallback base URL for Stripe redirects when `Origin` is unavailable.
 5. **Deploy Edge Function**:
    - `supabase functions deploy menu-import`
+   - `supabase functions deploy create-checkout-session`
+   - `supabase functions deploy create-billing-portal-session`
+   - `supabase functions deploy stripe-webhook --no-verify-jwt`
 6. **Commands**:
    - `npm install`: Install dependencies.
    - `npm run dev`: Start local development server.
@@ -94,3 +129,5 @@ Important behavior notes:
 - Divider copy in the editor is contextual:
   - If the menu is empty, it suggests building from scratch.
   - If items already exist, it suggests continuing to edit manually.
+- On the free plan, AI import remains visible in the editor as an upgrade path instead of disappearing.
+- Billing management currently lives in the Settings screen rather than as a separate dashboard route.
