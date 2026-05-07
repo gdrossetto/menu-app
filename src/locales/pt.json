@@ -119,6 +119,13 @@
   "publicMenu": {
     "loading": "Carregando o menu...",
     "menu": "Menu",
+    "digitalMenu": "Menu Digital",
+    "empty": "O menu está vazio.",
+    "notFound": "Menu não encontrado",
+    "ogDescription": "Veja o menu digital de {{name}}.",
+    "outOfStock": "Indisponível",
+    "closeImage": "Fechar visualização da imagem",
+    "imagePreviewAlt": "Pré-visualização em tamanho real",
     "poweredBy": "Desenvolvido por MenuQR"
   },
   "common": {

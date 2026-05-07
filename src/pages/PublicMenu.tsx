@@ -1,6 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import {
+  ChevronDown,
+  Globe,
+  Image as ImageIcon,
+  X,
+} from "lucide-react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { supabase } from "../lib/supabase";
 import { fetchMenuData } from "../lib/menuData";
@@ -26,26 +32,29 @@ export default function PublicMenu() {
   const [error, setError] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const visibleCategories = useMemo(
+    () =>
+      categories.filter((category) =>
+        items.some((item) => item.category_id === category.id),
+      ),
+    [categories, items],
+  );
 
   const loadMenu = useCallback(async () => {
     if (!restaurantId) return;
+
     setLoading(true);
     setError("");
 
     try {
       const { restaurant: rest, categories: cats, items: menuItems } =
         await fetchMenuData(restaurantId);
+
       setRestaurant(rest);
       setCategories(cats);
-      setActiveCategory(cats[0]?.id || "");
       setItems(menuItems);
-
-      document.title = `${rest.name} - Menu`;
-      setMetaTag("og:title", `${rest.name} - Menu`);
-      setMetaTag("og:description", `View the digital menu for ${rest.name}.`);
-      if (rest.logo_url) {
-        setMetaTag("og:image", rest.logo_url);
-      }
 
       const sessionKey = `viewed_${rest.id}`;
       if (!sessionStorage.getItem(sessionKey)) {
@@ -54,178 +63,229 @@ export default function PublicMenu() {
       }
     } catch (menuError) {
       console.error("Error loading public menu:", menuError);
-      setError("Restaurant not found.");
+      setError("notFound");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }, [restaurantId]);
 
   useEffect(() => {
     void Promise.resolve().then(loadMenu);
   }, [loadMenu]);
 
-  const scrollToCategory = (id: string) => {
-    setActiveCategory(id);
-    const element = document.getElementById(`category-${id}`);
-    if (element) {
-      const y = element.getBoundingClientRect().top + window.scrollY - 140;
-      window.scrollTo({ top: y, behavior: "smooth" });
+  useEffect(() => {
+    if (!restaurant) return;
+
+    const menuTitle = `${restaurant.name} - ${t("publicMenu.menu", "Menu")}`;
+    document.title = menuTitle;
+    setMetaTag("og:title", menuTitle);
+    setMetaTag(
+      "og:description",
+      t("publicMenu.ogDescription", {
+        defaultValue: "View the digital menu for {{name}}.",
+        name: restaurant.name,
+      }),
+    );
+
+    if (restaurant.logo_url) {
+      setMetaTag("og:image", restaurant.logo_url);
     }
-  };
+  }, [restaurant, t, i18n.language]);
+
+  const effectiveActiveCategory = visibleCategories.some(
+    (category) => category.id === activeCategory,
+  )
+    ? activeCategory
+    : (visibleCategories[0]?.id ?? "");
 
   useEffect(() => {
     const handleScroll = () => {
-      const offsets = categories.map((category) => {
-        const element = document.getElementById(`category-${category.id}`);
-        return {
-          id: category.id,
-          top: element ? element.getBoundingClientRect().top : Infinity,
-        };
-      });
+      setIsScrolled(window.scrollY > 50);
 
-      const current = offsets.filter((offset) => offset.top <= 160).pop();
-      if (current && current.id !== activeCategory) {
-        setActiveCategory(current.id);
+      let currentActiveId = visibleCategories[0]?.id ?? "";
+
+      for (const category of visibleCategories) {
+        const element = document.getElementById(`category-${category.id}`);
+        if (element && window.scrollY >= element.offsetTop - 150) {
+          currentActiveId = category.id;
+        }
+      }
+
+      if (currentActiveId && currentActiveId !== effectiveActiveCategory) {
+        setActiveCategory(currentActiveId);
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [categories, activeCategory]);
+  }, [effectiveActiveCategory, visibleCategories]);
 
-  useEffect(() => {
-    if (restaurant?.primary_color && restaurant.primary_color !== "#000000") {
-      document.documentElement.style.setProperty(
-        "--restaurant-primary",
-        restaurant.primary_color,
-      );
-      return () => {
-        document.documentElement.style.removeProperty("--restaurant-primary");
-      };
-    }
+  const scrollToCategory = (id: string) => {
+    setActiveCategory(id);
 
-    document.documentElement.style.removeProperty("--restaurant-primary");
-    return () => {
-      document.documentElement.style.removeProperty("--restaurant-primary");
-    };
-  }, [restaurant?.primary_color]);
+    const element = document.getElementById(`category-${id}`);
+    if (!element) return;
+
+    const offset = 120;
+    const bodyRect = document.body.getBoundingClientRect().top;
+    const elementRect = element.getBoundingClientRect().top;
+    const elementPosition = elementRect - bodyRect;
+    const offsetPosition = elementPosition - offset;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth",
+    });
+  };
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner label={t("publicMenu.loading", "Loading menu...")} />;
   }
 
   if (error || !restaurant) {
     return (
       <div className="flex h-screen items-center justify-center p-8 text-center">
-        <h2>{error || "Menu not found"}</h2>
+        <h2>{t("publicMenu.notFound", "Menu not found")}</h2>
       </div>
     );
   }
 
+  const currentLanguage = i18n.language.split("-")[0];
+  const currencySymbol = restaurant.currency_symbol || "$";
+
   return (
-    <div className="min-h-screen bg-app-bg pb-16">
-      <header className="sticky top-0 z-10 bg-white/90 px-6 pt-10 pb-4 text-center shadow-[0_1px_0_rgba(0,0,0,0.03)] backdrop-blur-[10px]">
-        <div className="absolute top-4 right-6">
+    <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans text-slate-900 selection:bg-slate-200">
+      <div className="pointer-events-none absolute top-0 right-0 z-10 flex w-full justify-end p-4">
+        <div className="pointer-events-auto relative">
+          <Globe className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <select
-            value={i18n.language.split("-")[0]}
+            value={currentLanguage}
             onChange={(event) => i18n.changeLanguage(event.target.value)}
-            className="rounded-[0.5rem] border border-app-border bg-white px-2 py-1 text-[0.8rem]"
+            aria-label={t("common.language", "Language")}
+            className="appearance-none rounded-lg border border-slate-200 bg-white py-1.5 pr-8 pl-8 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
           >
             <option value="en">EN</option>
             <option value="pt">PT</option>
           </select>
+          <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-3 w-3 -translate-y-1/2 text-slate-400" />
         </div>
+      </div>
 
-        {restaurant.logo_url && (
-          <img
-            src={restaurant.logo_url}
-            alt={restaurant.name}
-            className="mx-auto mb-4 h-[60px] rounded-[0.5rem]"
-          />
-        )}
-        <h1 className="m-0 text-[1.75rem] font-bold tracking-[-0.02em] text-[var(--restaurant-primary,var(--color-app-primary))]">
+      <header className="flex flex-col items-center px-6 pt-16 pb-8 text-center">
+        <div className="mb-5 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-slate-200/50 bg-black text-white shadow-xl shadow-black/10">
+          {restaurant.logo_url ? (
+            <img
+              src={restaurant.logo_url}
+              alt={restaurant.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <ImageIcon className="h-8 w-8 opacity-50" />
+          )}
+        </div>
+        <h1 className="mb-1 text-3xl font-extrabold tracking-tight text-slate-900">
           {restaurant.name}
         </h1>
-
-        {categories.length > 0 && (
-          <div className="hide-scrollbar mt-6 flex gap-2 overflow-x-auto pb-2">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => scrollToCategory(category.id)}
-                className={`whitespace-nowrap rounded-full px-5 py-2 text-[0.9rem] font-medium transition-all duration-200 ${
-                  activeCategory === category.id
-                    ? "bg-[var(--restaurant-primary,var(--color-app-primary))] text-white"
-                    : "bg-app-surface-hover text-app-text-muted"
-                }`}
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
-        )}
+        <p className="text-sm font-medium text-slate-500">
+          {t("publicMenu.digitalMenu", "Digital Menu")}
+        </p>
       </header>
 
-      <main className="mx-auto max-w-[600px] px-6 py-8">
-        {categories.length === 0 ? (
-          <p className="text-center text-app-text-muted">Menu is empty.</p>
+      {visibleCategories.length > 0 && (
+        <div
+          className={`sticky top-0 z-50 transition-all duration-300 ${
+            isScrolled
+              ? "border-b border-slate-200 bg-[#F8FAFC]/90 shadow-sm backdrop-blur-md"
+              : "bg-transparent"
+          }`}
+        >
+          <div className="mx-auto max-w-3xl px-4 py-3">
+            <div className="hide-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+              {visibleCategories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => scrollToCategory(category.id)}
+                  className={`whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-95 ${
+                    effectiveActiveCategory === category.id
+                      ? "bg-black text-white shadow-md shadow-black/10"
+                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <main className="mx-auto mt-6 max-w-3xl px-4">
+        {visibleCategories.length === 0 ? (
+          <p className="py-12 text-center text-slate-500">
+            {t("publicMenu.empty", "Menu is empty.")}
+          </p>
         ) : (
-          categories.map((category) => {
+          visibleCategories.map((category) => {
             const categoryItems = items.filter(
               (item) => item.category_id === category.id,
             );
-            if (categoryItems.length === 0) return null;
 
             return (
               <section
                 key={category.id}
                 id={`category-${category.id}`}
-                className="mb-14 scroll-mt-40"
+                className="mb-12 scroll-mt-32"
               >
-                <h2 className="mb-6 text-[1.4rem] font-semibold tracking-[-0.01em] text-[var(--restaurant-primary,var(--color-app-primary))]">
+                <h2 className="mb-6 px-1 text-2xl font-bold tracking-tight text-slate-900">
                   {category.name}
                 </h2>
-                <div className="flex flex-col gap-4">
+
+                <div className="flex flex-col gap-3">
                   {categoryItems.map((item) => (
                     <div
                       key={item.id}
-                      className={`card flex overflow-hidden border-none bg-app-surface shadow-app-sm ${
+                      className={`flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-colors hover:border-slate-200 sm:gap-4 md:p-5 ${
                         item.is_available ? "" : "grayscale opacity-70"
                       }`}
                     >
-                      <div className="flex-1 p-5">
-                        <div className="flex items-start justify-between gap-4">
-                          <h3 className="m-0 text-[1.1rem] font-semibold text-[var(--restaurant-primary,var(--color-app-primary))]">
-                            {item.name}
-                            {!item.is_available && (
-                              <span className="ml-2 inline-flex rounded-[0.5rem] bg-app-border px-1.5 py-0.5 align-middle text-[0.7rem] font-semibold uppercase tracking-[0.05em] text-app-surface">
-                                Out of Stock
-                              </span>
-                            )}
-                          </h3>
-                          <span className="whitespace-nowrap font-semibold text-app-text">
-                            {restaurant.currency_symbol || "$"}
-                            {item.price.toFixed(2)}
-                          </span>
-                        </div>
-                        {item.description && (
-                          <p className="mt-2 text-[0.9rem] leading-[1.5] text-app-text-muted">
-                            {item.description}
-                          </p>
-                        )}
-                      </div>
                       {item.image_url && (
-                        <div
-                          className="w-[120px] shrink-0 cursor-pointer p-3 pl-0"
+                        <button
+                          type="button"
                           onClick={() => setSelectedImage(item.image_url)}
+                          className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-100/50 bg-slate-100 shadow-sm sm:h-20 sm:w-20"
                         >
                           <img
                             src={item.image_url}
                             alt={item.name}
-                            className="h-full w-full rounded-[0.5rem] object-cover"
+                            className="h-full w-full object-cover"
                           />
-                        </div>
+                        </button>
                       )}
+
+                      <div className="flex-1 py-1 pr-2 sm:pr-4">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                          <h3 className="text-base leading-tight font-bold text-slate-900">
+                            {item.name}
+                          </h3>
+                          {!item.is_available && (
+                            <span className="rounded-full bg-slate-100 px-2 py-1 text-[0.65rem] font-bold uppercase tracking-[0.08em] text-slate-500">
+                              {t("publicMenu.outOfStock", "Out of stock")}
+                            </span>
+                          )}
+                        </div>
+                        {item.description && (
+                          <p className="text-sm leading-relaxed text-slate-500">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="shrink-0 rounded-xl border border-slate-100 bg-slate-50 px-3 py-1.5">
+                        <span className="whitespace-nowrap text-sm font-bold tracking-tight text-slate-900 sm:text-base">
+                          {currencySymbol}
+                          {Number(item.price).toFixed(2)}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -235,8 +295,8 @@ export default function PublicMenu() {
         )}
       </main>
 
-      <footer className="px-6 py-12 text-center text-[0.85rem]">
-        <p className="text-app-text-muted">
+      <footer className="mt-16 pb-8 text-center">
+        <p className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">
           {t("publicMenu.poweredBy", "Powered by MenuQR")}
         </p>
       </footer>
@@ -248,13 +308,14 @@ export default function PublicMenu() {
         >
           <button
             onClick={() => setSelectedImage(null)}
+            aria-label={t("publicMenu.closeImage", "Close image preview")}
             className="absolute top-6 right-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white"
           >
-            ✕
+            <X className="h-4 w-4" />
           </button>
           <img
             src={selectedImage}
-            alt="Full size preview"
+            alt={t("publicMenu.imagePreviewAlt", "Full size preview")}
             className="max-h-full max-w-full rounded-[0.5rem] object-contain"
             onClick={(event) => event.stopPropagation()}
           />

@@ -119,6 +119,13 @@
   "publicMenu": {
     "loading": "Loading menu...",
     "menu": "Menu",
+    "digitalMenu": "Digital Menu",
+    "empty": "Menu is empty.",
+    "notFound": "Menu not found",
+    "ogDescription": "View the digital menu for {{name}}.",
+    "outOfStock": "Out of stock",
+    "closeImage": "Close image preview",
+    "imagePreviewAlt": "Full size preview",
     "poweredBy": "Powered by MenuQR"
   },
   "common": {
