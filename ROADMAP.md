@@ -1,54 +1,110 @@
 # MenuQR Product Roadmap
 
-## ✅ Phase 1: Security & Core Mechanics (Completed)
+This roadmap reflects the current state of the app after:
+- Tailwind styling migration
+- AI menu import rollout
+- Landing page rollout
+- Stripe billing setup for a freemium model
 
-- **Supabase Authentication**: Secure login system.
-- **Row Level Security (RLS)**: Enforced data ownership (users can only see/edit their own restaurant).
-- **Core CRUD**: Categories and Items management.
+## ✅ Phase 1: Security and Core Mechanics (Completed)
 
-## ✅ Phase 2: The Core Menu Experience (Completed)
+- Supabase authentication
+- Row Level Security (RLS)
+- Restaurant ownership model
+- Category and item CRUD
 
-- **Drag & Drop**: Category and Item reordering.
-- **Availability Toggles**: Mark items "Out of Stock" without deleting them.
-- **Image Compression**: Client-side native canvas compression for lightning-fast uploads.
-- **Printable Menu**: Auto-generated ink-friendly A4 physical menu.
-- **Analytics**: Real-time view tracking with dynamic 7/30 day bar charts.
-- **Brand Customization**: Logo uploads and dynamic CSS color theming.
+## ✅ Phase 2: Core Menu Experience (Completed)
 
----
+- Drag and drop for categories and items
+- Availability toggles
+- Client-side image compression
+- Public mobile menu
+- Print menu
+- QR code generation
+- Restaurant branding
+- Analytics with 7/30 day views
+- English and Portuguese support
 
-# 🚀 Phase 3: The "Killer Features" (Differentiators)
+## ✅ Phase 3: Differentiator Features (Completed / In Progress)
 
-To make restaurant owners choose MenuQR over free PDF generators or established competitors, we need features that actively increase their sales or reduce their staff's workload.
+- AI menu import from photo/PDF
+- Review-before-import modal
+- Additive import into existing categories
+- Empty-menu bootstrapping
+- Landing page with product marketing
 
-## 1. Dietary & Allergen Badges (High Priority - Easy Win)
+## ✅ Phase 4: Monetization Foundations (Completed)
 
-Customers increasingly base dining decisions on dietary restrictions.
+- Stripe Checkout subscription flow
+- Stripe Customer Portal integration
+- Stripe webhook sync into Supabase
+- Fallback manual billing sync
+- Freemium model where AI import is the first paid feature
 
-- **Feature**: Add checkboxes in the Edit Item modal for: 🌿 Vegan, 🌾 Gluten-Free, 🌶️ Spicy, 🥜 Contains Nuts.
-- **UI Impact**: Display small, elegant emoji/SVG badges next to the item names on the public menu.
+Current monetization shape:
 
-## 2. "Featured" or "Chef's Special" Items (High Priority - Revenue Driver)
+- **Free**
+  - core editor
+  - QR code
+  - public menu
+  - print menu
+  - settings and branding
+- **Professional**
+  - AI menu import
 
-Restaurants want to push high-margin items.
+## 🚀 Phase 5: Billing Hardening and SaaS Ops (Next)
 
-- **Feature**: A toggle to mark an item as "Featured".
-- **UI Impact**: Featured items get a special visual treatment (e.g., a subtle border, a star icon) or are aggregated into a "Popular Picks" horizontal scrolling carousel at the very top of the menu.
+### 1. Webhook reliability and observability
 
-## 3. Multi-Language / AI Translation (Low Priority / Future)
+- Add richer logging around Stripe webhook payload handling
+- Add admin/support visibility for billing state mismatches
+- Add deduplication safeguards for repeated checkout attempts
 
-Essential for tourist-heavy areas.
+### 2. Billing UX polish
 
-- **Feature**: Allow the user to select a language dropdown on the public menu.
-- **Execution**: Use an API (like Google Translate or OpenAI) to auto-translate the menu on the fly, or allow the owner to manually input translations.
+- Add a dedicated billing status section to the dashboard overview
+- Show subscription renewal/cancellation dates more explicitly
+- Add clearer success/failure messaging around sync states
 
----
+### 3. Entitlement expansion
 
-## 🔒 Phase 4: Monetization & SaaS Infrastructure
+Potential future paid features:
+- Advanced analytics
+- Additional theme packs
+- AI translation
+- Team access / multi-user restaurants
+- Custom domain or white-label options
 
-Once we have a "Killer Feature" built (like Badges or Featured Items), it's time to charge for it.
+## 🌱 Phase 6: Product Expansion Ideas
 
-- **Stripe Integration**: Implement Stripe Checkout.
-- **Freemium Model**:
-  - _Free Tier_: Max 15 items, standard theme, no analytics.
-  - _Pro Tier ($15/mo)_: Unlimited items, logo upload, analytics, printable menu, featured items, and waiter requests.
+### Dietary and allergen badges
+
+- Vegan
+- Gluten-free
+- Spicy
+- Contains nuts
+
+### Featured items / chef specials
+
+- Highlighted dishes
+- Optional "popular picks" section
+
+### Translation workflows
+
+- Manual translations
+- AI-assisted translations
+- Owner-controlled override flow
+
+### Restaurant operations features
+
+- Temporary specials
+- Scheduled availability
+- Happy hour menus
+- Seasonal menus
+
+## Technical Debt / Maintenance
+
+- Split large frontend bundle with route-level code splitting
+- Add database migration files instead of relying only on the schema snapshot
+- Improve webhook testability and local Stripe dev workflow
+- Consider moving from Stripe lookup key to direct price ID if dashboard setup remains confusing

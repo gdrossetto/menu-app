@@ -43,6 +43,7 @@ MenuQR is a B2B SaaS platform that allows restaurant owners to create and manage
 - `supabase/functions/create-checkout-session/`: Creates a Stripe Checkout session for the Professional plan.
 - `supabase/functions/create-billing-portal-session/`: Creates a Stripe Customer Portal session.
 - `supabase/functions/stripe-webhook/`: Syncs Stripe subscription events back into Supabase.
+- `supabase/functions/sync-billing-status/`: Manual/fallback billing sync from Stripe into Supabase.
 - `supabase/functions/_shared/`: Shared CORS, auth, Supabase, and Stripe helpers for edge functions.
 - `supabase_schema.sql`: The source of truth for the database structure.
 
@@ -88,6 +89,7 @@ Implementation shape:
    - The checkout session is created server-side using a Stripe price lookup key.
 2. **Webhook sync**
    - Stripe webhook events update the restaurant row in Supabase with plan tier and subscription status.
+   - A fallback sync function can also pull the latest subscription directly from Stripe when webhook delivery is delayed.
 3. **Portal**
    - Professional users can open the Stripe customer portal to manage payment methods or cancel their subscription.
 4. **Feature gating**
@@ -96,7 +98,7 @@ Implementation shape:
 
 Recommended Stripe setup:
 - One recurring product/price for the Professional plan
-- A stable lookup key stored as `STRIPE_AI_IMPORT_PRICE_LOOKUP_KEY`
+- A stable lookup key stored as `STRIPE_AI_IMPORT_PRICE_LOOKUP_KEY` with current expected value `menuqr_pro`
 - Stripe-hosted customer portal enabled in the Dashboard
 
 ## 🛠 Setup & Development
@@ -108,13 +110,14 @@ Recommended Stripe setup:
    - `OPENAI_MENU_IMPORT_MODEL`: Optional model override. Defaults to `gpt-5.4-mini`.
    - `STRIPE_SECRET_KEY`: Required by the billing edge functions.
    - `STRIPE_WEBHOOK_SECRET`: Required by `supabase/functions/stripe-webhook`.
-   - `STRIPE_AI_IMPORT_PRICE_LOOKUP_KEY`: Lookup key for the Professional Stripe price.
+   - `STRIPE_AI_IMPORT_PRICE_LOOKUP_KEY`: Lookup key for the Professional Stripe price. Current expected value: `menuqr_pro`.
    - `SITE_URL`: Recommended fallback base URL for Stripe redirects when `Origin` is unavailable.
 5. **Deploy Edge Function**:
    - `supabase functions deploy menu-import`
    - `supabase functions deploy create-checkout-session`
    - `supabase functions deploy create-billing-portal-session`
    - `supabase functions deploy stripe-webhook --no-verify-jwt`
+   - `supabase functions deploy sync-billing-status`
 6. **Commands**:
    - `npm install`: Install dependencies.
    - `npm run dev`: Start local development server.
@@ -131,3 +134,4 @@ Recommended Stripe setup:
   - If items already exist, it suggests continuing to edit manually.
 - On the free plan, AI import remains visible in the editor as an upgrade path instead of disappearing.
 - Billing management currently lives in the Settings screen rather than as a separate dashboard route.
+- The Settings screen includes a manual **Sync billing now** action for Stripe fallback reconciliation.

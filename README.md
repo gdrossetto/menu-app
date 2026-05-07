@@ -1,73 +1,71 @@
-# React + TypeScript + Vite
+# MenuQR
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+MenuQR is a SaaS app for restaurant owners to create, manage, and publish QR-code-based digital menus. The core editor is free. The first premium feature is **AI menu import**, which is billed through Stripe.
 
-Currently, two official plugins are available:
+## Stack
+- React 19
+- Vite
+- TypeScript
+- Tailwind CSS v4
+- Supabase (Auth, Postgres, Storage, Edge Functions)
+- Stripe Billing
+- OpenAI Responses API
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Main Product Surfaces
+- Owner dashboard: QR code, analytics, quick actions
+- Menu editor: categories, items, drag-and-drop ordering, AI import
+- Settings: branding, currency, billing
+- Public menu: mobile-first restaurant menu
+- Print menu: printer-friendly layout
+- Landing page: marketing site on `/`
 
-## React Compiler
+## Freemium Model
+- **Free**
+  - core menu editor
+  - QR code
+  - public menu
+  - print menu
+  - branding and currency settings
+- **Professional**
+  - AI menu import from photo/PDF
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Important Docs
+- Product and architecture overview: [PROJECT_OVERVIEW.md](/Users/gabrielrossetto/Documents/development/menu-app/PROJECT_OVERVIEW.md)
+- Full Edge Function + Stripe setup guide: [EDGE_FUNCTIONS_AND_BILLING.md](/Users/gabrielrossetto/Documents/development/menu-app/EDGE_FUNCTIONS_AND_BILLING.md)
+- Product roadmap: [ROADMAP.md](/Users/gabrielrossetto/Documents/development/menu-app/ROADMAP.md)
 
-## Expanding the ESLint configuration
+## Local Development
+Install dependencies:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Run the app:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Quality checks:
+
+```bash
+npm run lint
+npm run build
+```
+
+## Required Frontend Environment Variables
+Create a Vite env file with:
+
+```txt
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+```
+
+## Backend Requirements
+- Supabase project with the schema in `supabase_schema.sql`
+- Public storage bucket named `menu-images`
+- Edge Function secrets for OpenAI and Stripe
+- Stripe Checkout + Customer Portal + webhook endpoint configured
+
+For the full backend and billing setup, use [EDGE_FUNCTIONS_AND_BILLING.md](/Users/gabrielrossetto/Documents/development/menu-app/EDGE_FUNCTIONS_AND_BILLING.md).
