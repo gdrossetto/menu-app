@@ -101,55 +101,19 @@ export default function Dashboard() {
 
   if (!restaurant) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "var(--color-bg)",
-        }}
-      >
-        <div
-          className="card animate-fade-in"
-          style={{
-            width: "100%",
-            maxWidth: "400px",
-            padding: "3rem 2rem",
-            border: "none",
-            boxShadow: "var(--shadow-md)",
-          }}
-        >
-          <h1
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              marginBottom: "0.5rem",
-              textAlign: "center",
-              letterSpacing: "-0.02em",
-            }}
-          >
+      <div className="app-screen-center">
+        <div className="app-empty-card animate-fade-in">
+          <h1 className="mb-2 text-center text-2xl font-bold tracking-[-0.02em]">
             {t("dashboard.welcome", "Welcome to MenuQR")}
           </h1>
-          <p
-            style={{
-              color: "var(--color-text-muted)",
-              marginBottom: "2rem",
-              textAlign: "center",
-              fontSize: "0.95rem",
-            }}
-          >
+          <p className="mb-8 text-center text-[0.95rem] text-app-text-muted">
             {t(
               "dashboard.enterRestaurantName",
               "Enter your restaurant's name to get started.",
             )}
           </p>
 
-          <form
-            onSubmit={createRestaurant}
-            className="form-group"
-            style={{ gap: "1rem" }}
-          >
+          <form onSubmit={createRestaurant} className="form-group gap-4">
             <input
               id="name"
               type="text"
@@ -161,8 +125,7 @@ export default function Dashboard() {
             />
             <button
               type="submit"
-              className="btn btn-primary"
-              style={{ width: "100%", padding: "0.8rem" }}
+              className="btn btn-primary w-full py-3"
             >
               {t("dashboard.createMenuBtn", "Create My Menu")}
             </button>
@@ -192,53 +155,21 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div
-        className="animate-fade-in"
-        style={{ display: "flex", flexDirection: "column", gap: "3rem" }}
-      >
+      <div className="app-section-stack animate-fade-in">
         <div>
-          <h1
-            style={{
-              fontSize: "2rem",
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              letterSpacing: "-0.02em",
-            }}
-          >
+          <h1 className="app-page-title">
             {t("dashboard.overview", "Overview")}
           </h1>
-          <p style={{ color: "var(--color-text-muted)", marginTop: "0.25rem" }}>
+          <p className="app-page-subtitle">
             {t("dashboard.manageMenu", "Manage your digital menu and QR code.")}
           </p>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "2rem",
-          }}
-        >
+        <div className="grid gap-8 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
           <div
-            className="card"
-            style={{
-              border: "none",
-              background: "var(--color-surface)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              padding: "3rem 2rem",
-            }}
+            className="card flex flex-col items-center border-none bg-app-surface px-8 py-12"
           >
-            <div
-              style={{
-                padding: "1rem",
-                background: "white",
-                borderRadius: "1.5rem",
-                boxShadow: "var(--shadow-md)",
-                marginBottom: "2rem",
-              }}
-            >
+            <div className="mb-8 rounded-[1.5rem] bg-white p-4 shadow-app-md">
               <QRCodeCanvas
                 id="qr-canvas"
                 value={publicUrl}
@@ -247,54 +178,24 @@ export default function Dashboard() {
                 includeMargin={true}
               />
             </div>
-            <h2
-              style={{
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                marginBottom: "0.5rem",
-              }}
-            >
+            <h2 className="mb-2 text-xl font-semibold">
               {t("dashboard.yourQrCode", "Your QR Code")}
             </h2>
-            <p
-              style={{
-                textAlign: "center",
-                color: "var(--color-text-muted)",
-                fontSize: "0.9rem",
-                marginBottom: "2rem",
-              }}
-            >
+            <p className="mb-8 text-center text-[0.9rem] text-app-text-muted">
               {t(
                 "dashboard.customersCanScan",
                 "Customers can scan this to view your menu instantly.",
               )}
             </p>
-            <div
-              className="flex gap-2"
-              style={{
-                width: "100%",
-                flexWrap: "wrap",
-                justifyContent: "center",
-              }}
-            >
+            <div className="flex w-full flex-wrap justify-center gap-2">
               <button
-                className="btn btn-primary"
-                style={{
-                  flex: "1 1 auto",
-                  padding: "0.75rem",
-                  minWidth: "100px",
-                }}
+                className="btn btn-primary min-w-[100px] flex-1 py-3"
                 onClick={downloadQRCode}
               >
                 <Download size={18} /> {t("dashboard.save", "Save")}
               </button>
               <button
-                className="btn btn-outline"
-                style={{
-                  flex: "1 1 auto",
-                  padding: "0.75rem",
-                  minWidth: "100px",
-                }}
+                className="btn btn-outline min-w-[100px] flex-1 py-3"
                 onClick={() => {
                   window.open(`/m/${restaurant.id}/print`, "_blank");
                 }}
@@ -305,12 +206,7 @@ export default function Dashboard() {
                 href={publicUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="btn btn-outline"
-                style={{
-                  flex: "1 1 auto",
-                  padding: "0.75rem",
-                  minWidth: "100px",
-                }}
+                className="btn btn-outline min-w-[100px] flex-1 py-3"
               >
                 <ExternalLink size={18} /> {t("dashboard.open", "Open")}
               </a>
@@ -318,34 +214,16 @@ export default function Dashboard() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <div
-              className="card"
-              style={{ border: "none", background: "var(--color-surface)" }}
-            >
+            <div className="card border-none bg-app-surface">
               <div className="card-body">
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "1.5rem",
-                  }}
-                >
-                  <h3
-                    style={{ fontSize: "1.1rem", fontWeight: 600, margin: 0 }}
-                  >
+                <div className="mb-6 flex items-center justify-between">
+                  <h3 className="m-0 text-[1.1rem] font-semibold">
                     {t("dashboard.menuViews", "Menu Views")}
                   </h3>
                   <select
                     value={timeframe}
                     onChange={(e) => setTimeframe(e.target.value as "7" | "30")}
-                    style={{
-                      padding: "0.25rem 0.5rem",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--color-border)",
-                      fontSize: "0.85rem",
-                      background: "white",
-                    }}
+                    className="app-inline-select bg-white"
                   >
                     <option value="7">
                       {t("dashboard.last7Days", "Last 7 Days")}
@@ -356,28 +234,9 @@ export default function Dashboard() {
                   </select>
                 </div>
 
-                <div
-                  style={{
-                    height: "150px",
-                    display: "flex",
-                    alignItems: "flex-end",
-                    gap: "4px",
-                    borderBottom: "1px solid var(--color-border)",
-                    paddingBottom: "0.5rem",
-                  }}
-                >
+                <div className="flex h-[150px] items-end gap-1 border-b border-app-border pb-2">
                   {filteredChartData.length === 0 ? (
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "var(--color-text-muted)",
-                        fontSize: "0.9rem",
-                      }}
-                    >
+                    <div className="flex h-full w-full items-center justify-center text-[0.9rem] text-app-text-muted">
                       {t(
                         "dashboard.noViewsYet",
                         "No views yet. Share your link!",
@@ -389,51 +248,41 @@ export default function Dashboard() {
                         ...filteredChartData.map((c) => c.count),
                         1,
                       );
-                      const heightPercent = `${(d.count / maxCount) * 100}%`;
+                      const barHeight = d.count > 0
+                        ? Math.max((d.count / maxCount) * 100, 4)
+                        : 0;
                       return (
                         <div
                           key={i}
-                          style={{
-                            flex: 1,
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: "0.5rem",
-                            height: "100%",
-                          }}
+                          className="flex h-full flex-1 flex-col items-center gap-2"
                         >
-                          <div
-                            style={{
-                              flex: 1,
-                              width: "100%",
-                              display: "flex",
-                              alignItems: "flex-end",
-                              justifyContent: "center",
-                              position: "relative",
-                            }}
-                          >
-                            <div
-                              title={`${d.count} views on ${d.date}`}
-                              style={{
-                                width: timeframe === "30" ? "100%" : "20px",
-                                maxWidth: "30px",
-                                height: heightPercent,
-                                backgroundColor: "var(--color-primary)",
-                                borderRadius: "4px 4px 0 0",
-                                opacity: 0.8,
-                                minHeight: d.count > 0 ? "4px" : "0",
-                              }}
-                            />
+                          <div className="relative flex w-full flex-1 items-end justify-center">
+                            <svg
+                              viewBox="0 0 30 100"
+                              preserveAspectRatio="none"
+                              role="img"
+                              aria-label={`${d.count} views on ${d.date}`}
+                              className={`opacity-80 ${
+                                timeframe === "30"
+                                  ? "h-full w-full max-w-[30px]"
+                                  : "h-full w-5 max-w-[30px]"
+                              }`}
+                            >
+                              <rect
+                                x="0"
+                                y={100 - barHeight}
+                                width="30"
+                                height={barHeight}
+                                rx="4"
+                                ry="4"
+                                className="fill-app-primary"
+                              />
+                            </svg>
                           </div>
                           <span
-                            style={{
-                              fontSize: "0.6rem",
-                              color: "var(--color-text-muted)",
-                              display:
-                                timeframe === "30" && i % 5 !== 0
-                                  ? "none"
-                                  : "block",
-                            }}
+                            className={`text-[0.6rem] text-app-text-muted ${
+                              timeframe === "30" && i % 5 !== 0 ? "hidden" : "block"
+                            }`}
                           >
                             {d.date.split("-")[2]}
                           </span>
@@ -442,50 +291,21 @@ export default function Dashboard() {
                     })
                   )}
                 </div>
-                <div
-                  style={{
-                    textAlign: "center",
-                    marginTop: "1rem",
-                    fontWeight: 600,
-                    fontSize: "1.2rem",
-                    color: "var(--color-primary)",
-                  }}
-                >
+                <div className="mt-4 text-center text-[1.2rem] font-semibold text-app-primary">
                   {filteredChartData.reduce((acc, curr) => acc + curr.count, 0)}{" "}
-                  <span
-                    style={{
-                      fontSize: "0.9rem",
-                      color: "var(--color-text-muted)",
-                      fontWeight: 400,
-                    }}
-                  >
+                  <span className="text-[0.9rem] font-normal text-app-text-muted">
                     {t("dashboard.totalViews", "total views")}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div
-              className="card"
-              style={{ border: "none", background: "var(--color-surface)" }}
-            >
+            <div className="card border-none bg-app-surface">
               <div className="card-body">
-                <h3
-                  style={{
-                    fontSize: "1.1rem",
-                    fontWeight: 600,
-                    marginBottom: "0.5rem",
-                  }}
-                >
+                <h3 className="mb-2 text-[1.1rem] font-semibold">
                   {t("dashboard.quickActions", "Quick Actions")}
                 </h3>
-                <p
-                  style={{
-                    fontSize: "0.9rem",
-                    color: "var(--color-text-muted)",
-                    marginBottom: "1.5rem",
-                  }}
-                >
+                <p className="mb-6 text-[0.9rem] text-app-text-muted">
                   {t(
                     "dashboard.updateCategories",
                     "Update your categories and items. Changes are saved automatically.",
@@ -493,8 +313,7 @@ export default function Dashboard() {
                 </p>
                 <a
                   href="/dashboard/menu"
-                  className="btn btn-primary"
-                  style={{ width: "100%" }}
+                  className="btn btn-primary w-full"
                 >
                   {t("dashboard.editMenuItems", "Edit Menu Items")}
                 </a>

@@ -57,34 +57,26 @@ export default function Login() {
   }
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '100vh', 
-      backgroundColor: 'var(--color-bg)',
-      padding: '2rem'
-    }}>
-      <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px', padding: '3rem 2.5rem', border: 'none', boxShadow: 'var(--shadow-md)', backgroundColor: 'var(--color-surface)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-             <QrCode size={40} color="var(--color-primary)" />
+    <div className="app-screen-center p-8">
+      <div className="card animate-fade-in w-full max-w-md border-none bg-app-surface px-10 py-12 shadow-app-md">
+        <div className="mb-10 text-center">
+          <div className="mb-4 flex justify-center">
+            <QrCode className="h-10 w-10 text-app-primary" />
           </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-primary)', letterSpacing: '-0.02em', margin: 0 }}>MenuQR</h1>
-          <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem', fontSize: '0.95rem' }}>
+          <h1 className="m-0 text-[1.75rem] font-bold tracking-[-0.02em] text-app-primary">MenuQR</h1>
+          <p className="mt-2 text-[0.95rem] text-app-text-muted">
             {isSignUp ? 'Create your account' : 'Sign in to manage your menu'}
           </p>
         </div>
         
         {error && (
-          <div style={{ backgroundColor: 'var(--color-danger)', color: 'white', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'center' }}>
+          <div className="app-danger-banner mb-6">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div className="form-group" style={{ marginBottom: 0 }}>
+        <form onSubmit={handleAuth} className="flex flex-col gap-5">
+          <div className="form-group">
             <label className="form-label">Email</label>
             <input 
               type="email" 
@@ -95,7 +87,7 @@ export default function Login() {
               placeholder="you@restaurant.com"
             />
           </div>
-          <div className="form-group" style={{ marginBottom: 0 }}>
+          <div className="form-group">
             <label className="form-label">Password</label>
             <input 
               type="password" 
@@ -107,17 +99,16 @@ export default function Login() {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.8rem', marginTop: '0.5rem' }} disabled={loading}>
+          <button type="submit" className="btn btn-primary mt-2.5 w-full py-3" disabled={loading}>
             {loading ? 'Processing...' : (isSignUp ? 'Create Account' : 'Sign In')}
           </button>
         </form>
 
-        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+        <div className="mt-8 text-center">
           <button 
             type="button" 
             onClick={() => { setIsSignUp(!isSignUp); setError(null); }} 
             className="btn btn-ghost"
-            style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}
           >
             {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
           </button>

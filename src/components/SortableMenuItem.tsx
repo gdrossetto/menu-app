@@ -36,113 +36,58 @@ export default function SortableMenuItem({
   return (
     <div
       ref={setNodeRef}
-      className="card"
-      style={{
-        ...style,
-        display: "flex",
-        flexWrap: "wrap",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: "1rem",
-        padding: "1rem",
-        border: "none",
-        boxShadow: "var(--shadow-sm)",
-      }}
+      className="card flex flex-wrap items-center justify-between gap-4 border-none p-4 shadow-app-sm"
+      style={style}
     >
-      <div className="flex gap-4 items-center">
+      <div className="flex items-center gap-4">
         <div
           {...attributes}
           {...listeners}
-          style={{ cursor: "grab", display: "flex", touchAction: "none" }}
+          className="flex cursor-grab touch-none text-app-text-muted"
         >
-          <GripVertical size={16} color="var(--color-text-muted)" />
+          <GripVertical className="h-4 w-4" />
         </div>
         {item.image_url ? (
           <img
             src={item.image_url}
             alt={item.name}
-            style={{
-              width: "48px",
-              height: "48px",
-              objectFit: "cover",
-              borderRadius: "var(--radius-sm)",
-              filter: item.is_available ? "none" : "grayscale(100%)",
-            }}
+            className={`h-12 w-12 rounded-[0.5rem] object-cover ${item.is_available ? "" : "grayscale"}`}
           />
         ) : (
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              backgroundColor: "var(--color-surface-hover)",
-              borderRadius: "var(--radius-sm)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <ImageIcon size={20} color="var(--color-border)" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-[0.5rem] bg-app-surface-hover">
+            <ImageIcon className="h-5 w-5 text-app-border" />
           </div>
         )}
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <p style={{ fontWeight: 500, fontSize: "1rem" }}>{item.name}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-base font-medium">{item.name}</p>
             {!item.is_available && (
-              <span
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.2rem",
-                  fontSize: "0.75rem",
-                  backgroundColor: "var(--color-surface-hover)",
-                  padding: "0.1rem 0.4rem",
-                  borderRadius: "var(--radius-sm)",
-                  color: "var(--color-text-muted)",
-                  fontWeight: 600,
-                }}
-              >
+              <span className="flex items-center gap-1 rounded-[0.5rem] bg-app-surface-hover px-1.5 py-0.5 text-[0.75rem] font-semibold text-app-text-muted">
                 <EyeOff size={12} /> Hidden
               </span>
             )}
           </div>
           {item.description && (
-            <p
-              style={{
-                fontSize: "0.85rem",
-                color: "var(--color-text-muted)",
-                marginTop: "0.1rem",
-              }}
-            >
+            <p className="mt-0.5 text-[0.85rem] text-app-text-muted">
               {item.description}
             </p>
           )}
         </div>
       </div>
-      <div className="flex items-center gap-3" style={{ marginLeft: "auto" }}>
-        <span
-          style={{
-            fontWeight: 600,
-            color: "var(--color-text)",
-            marginRight: "1rem",
-          }}
-        >
+      <div className="ml-auto flex items-center gap-3">
+        <span className="mr-4 font-semibold text-app-text">
           {currencySymbol}
           {item.price.toFixed(2)}
         </span>
         <button
           onClick={() => onEdit(item)}
-          className="btn btn-ghost"
-          style={{
-            padding: "0.4rem",
-            color: "var(--color-text-muted)",
-          }}
+          className="btn btn-ghost p-[0.4rem] text-app-text-muted"
         >
           <Edit2 size={16} />
         </button>
         <button
           onClick={() => onDelete(item.id)}
-          className="btn btn-ghost"
-          style={{ padding: "0.4rem", color: "var(--color-danger)" }}
+          className="btn btn-ghost p-[0.4rem] text-app-danger"
         >
           <Trash2 size={16} />
         </button>

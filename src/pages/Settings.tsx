@@ -108,7 +108,7 @@ export default function Settings() {
   if (!restaurant) {
     return (
       <DashboardLayout>
-        <div style={{ textAlign: "center", marginTop: "4rem" }}>
+        <div className="app-empty-state">
           <h2>Please create a restaurant first in the Overview tab.</h2>
         </div>
       </DashboardLayout>
@@ -118,33 +118,21 @@ export default function Settings() {
   return (
     <DashboardLayout>
       <div className="animate-fade-in">
-        <div style={{ marginBottom: "2rem" }}>
-          <h1
-            style={{
-              fontSize: "2rem",
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              letterSpacing: "-0.02em",
-            }}
-          >
+        <div className="mb-8">
+          <h1 className="app-page-title">
             {t("settings.title", "Settings")}
           </h1>
-          <p style={{ color: "var(--color-text-muted)", marginTop: "0.25rem" }}>
+          <p className="app-page-subtitle">
             {t("settings.subtitle", "Configure your brand and localization.")}
           </p>
         </div>
 
         <div
-          className="card"
-          style={{
-            border: "none",
-            background: "var(--color-surface)",
-            maxWidth: "600px",
-          }}
+          className="card max-w-[600px] border-none bg-app-surface"
         >
           <div className="card-body">
             <form onSubmit={saveSettings} className="flex flex-col gap-6">
-              <div className="form-group" style={{ marginBottom: 0 }}>
+              <div className="form-group">
                 <label className="form-label">
                   {t("settings.restaurantName", "Restaurant Name")}
                 </label>
@@ -161,45 +149,19 @@ export default function Settings() {
                 />
               </div>
 
-              <div className="form-group" style={{ marginBottom: 0 }}>
+              <div className="form-group">
                 <label className="form-label">
                   {t("settings.restaurantLogo", "Restaurant Logo")}
                 </label>
-                <p
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "var(--color-text-muted)",
-                    marginBottom: "0.5rem",
-                  }}
-                >
+                <p className="app-help-text mb-2">
                   {t(
                     "settings.logoDescription",
                     "This logo will appear at the top of your public menu.",
                   )}
                 </p>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "1rem",
-                    alignItems: "center",
-                    marginTop: "0.5rem",
-                  }}
-                >
+                <div className="mt-2 flex items-center gap-4">
                   {logoFile || restaurant.logo_url ? (
-                    <div
-                      style={{
-                        width: "80px",
-                        height: "80px",
-                        flexShrink: 0,
-                        borderRadius: "var(--radius-sm)",
-                        overflow: "hidden",
-                        border: "1px solid var(--color-border)",
-                        backgroundColor: "white",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[0.5rem] border border-app-border bg-white">
                       <img
                         src={
                           logoFile
@@ -207,37 +169,16 @@ export default function Settings() {
                             : restaurant.logo_url!
                         }
                         alt="Logo Preview"
-                        style={{
-                          maxWidth: "100%",
-                          maxHeight: "100%",
-                          objectFit: "contain",
-                        }}
+                        className="max-h-full max-w-full object-contain"
                       />
                     </div>
                   ) : null}
                   <div
-                    className="form-input"
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                      cursor: "pointer",
-                    }}
+                    className="app-upload-trigger flex-1"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Upload size={16} color="var(--color-text-muted)" />
-                    <span
-                      style={{
-                        fontSize: "0.9rem",
-                        color: logoFile
-                          ? "var(--color-text)"
-                          : "var(--color-text-muted)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
+                    <Upload size={16} className="text-app-text-muted" />
+                    <span className={`truncate text-[0.9rem] ${logoFile ? "text-app-text" : "text-app-text-muted"}`}>
                       {logoFile
                         ? logoFile.name
                         : restaurant.logo_url
@@ -248,7 +189,7 @@ export default function Settings() {
                       type="file"
                       accept="image/*"
                       ref={fileInputRef}
-                      style={{ display: "none" }}
+                      className="hidden"
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
                           setLogoFile(e.target.files[0]);
@@ -259,71 +200,43 @@ export default function Settings() {
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginBottom: 0 }}>
+              <div className="form-group">
                 <label className="form-label">
                   {t("settings.brandColor", "Brand Color")}
                 </label>
-                <p
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "var(--color-text-muted)",
-                    marginBottom: "0.5rem",
-                  }}
-                >
+                <p className="app-help-text mb-2">
                   {t(
                     "settings.brandColorDescription",
                     "Choose a primary color for your menu to match your brand.",
                   )}
                 </p>
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "1rem" }}
-                >
+                <div className="flex items-center gap-4">
                   <input
                     type="color"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    style={{
-                      width: "50px",
-                      height: "50px",
-                      padding: 0,
-                      border: "none",
-                      borderRadius: "var(--radius-sm)",
-                      cursor: "pointer",
-                      backgroundColor: "transparent",
-                    }}
+                    className="h-[50px] w-[50px] cursor-pointer rounded-[0.5rem] border-0 bg-transparent p-0"
                   />
-                  <span
-                    style={{
-                      fontFamily: "monospace",
-                      color: "var(--color-text-muted)",
-                    }}
-                  >
+                  <span className="font-mono text-app-text-muted">
                     {primaryColor.toUpperCase()}
                   </span>
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginBottom: 0 }}>
+              <div className="form-group">
                 <label className="form-label">
                   {t("settings.currencySymbol", "Currency Symbol")}
                 </label>
-                <p
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "var(--color-text-muted)",
-                    marginBottom: "0.5rem",
-                  }}
-                >
+                <p className="app-help-text mb-2">
                   {t(
                     "settings.currencyDescription",
                     "This symbol will be displayed next to prices on your public menu.",
                   )}
                 </p>
                 <select
-                  className="form-input"
                   value={currencySymbol}
                   onChange={(e) => setCurrencySymbol(e.target.value)}
-                  style={{ maxWidth: "200px" }}
+                  className="form-input max-w-[200px]"
                 >
                   <option value="$">$ (USD/CAD/AUD)</option>
                   <option value="R$">R$ (BRL)</option>
@@ -335,12 +248,7 @@ export default function Settings() {
                 </select>
               </div>
 
-              <div
-                style={{
-                  paddingTop: "1rem",
-                  borderTop: "1px solid var(--color-border)",
-                }}
-              >
+              <div className="border-t border-app-border pt-4">
                 <button
                   type="submit"
                   className="btn btn-primary"

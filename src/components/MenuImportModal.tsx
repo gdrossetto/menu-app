@@ -2,8 +2,8 @@ import { useRef, useState } from "react";
 import {
   Check,
   FileImage,
-  FileUp,
   FileText,
+  FileUp,
   LoaderCircle,
   Sparkles,
   Trash2,
@@ -11,7 +11,11 @@ import {
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { extractMenuImportProposal, updateImportCategory, updateImportItem } from "../lib/menuImport";
+import {
+  extractMenuImportProposal,
+  updateImportCategory,
+  updateImportItem,
+} from "../lib/menuImport";
 import type { MenuImportProposal } from "../types/menu";
 
 interface MenuImportModalProps {
@@ -38,10 +42,11 @@ export default function MenuImportModal({
     return null;
   }
 
-  const itemCount = proposal?.categories.reduce(
-    (count, category) => count + category.items.length,
-    0,
-  ) || 0;
+  const itemCount =
+    proposal?.categories.reduce(
+      (count, category) => count + category.items.length,
+      0,
+    ) || 0;
 
   const analyzeFile = async () => {
     if (!selectedFile) return;
@@ -79,43 +84,24 @@ export default function MenuImportModal({
   };
 
   return (
-    <div className="modal-overlay" onClick={() => !isAnalyzing && !isImporting && onClose()}>
+    <div
+      className="modal-overlay"
+      onClick={() => !isAnalyzing && !isImporting && onClose()}
+    >
       <div
-        className="modal-content"
-        style={{ maxWidth: "880px", padding: "0" }}
+        className="app-modal-shell max-w-[880px] p-0"
         onClick={(event) => event.stopPropagation()}
       >
-        <div
-          style={{
-            padding: "1.5rem 1.5rem 1rem",
-            borderBottom: "1px solid var(--color-border)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: "1rem",
-          }}
-        >
+        <div className="app-modal-header">
           <div>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                marginBottom: "0.75rem",
-                color: "var(--color-primary)",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
+            <div className="mb-3 inline-flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-[0.05em] text-app-primary">
               <Sparkles size={14} />
               {t("editMenu.importAiBadge", "AI import")}
             </div>
-            <h3 style={{ fontSize: "1.3rem", fontWeight: 600, marginBottom: "0.35rem" }}>
+            <h3 className="mb-1.5 text-[1.3rem] font-semibold">
               {t("editMenu.importTitle", "Import menu from photo or PDF")}
             </h3>
-            <p style={{ color: "var(--color-text-muted)", maxWidth: "580px" }}>
+            <p className="max-w-[580px] text-app-text-muted">
               {t(
                 "editMenu.importSubtitle",
                 "Upload a current menu and we will draft categories and items for review before anything is added.",
@@ -125,45 +111,19 @@ export default function MenuImportModal({
           <button
             type="button"
             onClick={onClose}
-            className="btn btn-ghost"
+            className="app-icon-button"
             disabled={isAnalyzing || isImporting}
-            style={{ padding: "0.45rem" }}
           >
             <X size={18} />
           </button>
         </div>
 
-        <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        <div className="flex flex-col gap-5 p-6">
           {!proposal ? (
             <>
-              <div
-                style={{
-                  border: "1px dashed var(--color-border)",
-                  borderRadius: "var(--radius-lg)",
-                  padding: "2rem",
-                  background: "linear-gradient(180deg, #ffffff 0%, #fafafa 100%)",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    textAlign: "center",
-                    gap: "0.85rem",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "3.25rem",
-                      height: "3.25rem",
-                      borderRadius: "999px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "var(--color-surface-hover)",
-                    }}
-                  >
+              <div className="rounded-[1.25rem] border border-dashed border-app-border bg-gradient-to-b from-white to-slate-50 p-8">
+                <div className="flex flex-col items-center gap-3.5 text-center">
+                  <div className="flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-full bg-app-surface-hover">
                     {selectedFile?.type === "application/pdf" ? (
                       <FileText size={18} />
                     ) : (
@@ -171,19 +131,19 @@ export default function MenuImportModal({
                     )}
                   </div>
                   <div>
-                    <p style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
+                    <p className="mb-1.5 font-semibold">
                       {selectedFile
                         ? selectedFile.name
                         : t("editMenu.importChooseFile", "Choose a menu photo or PDF")}
                     </p>
-                    <p style={{ color: "var(--color-text-muted)", fontSize: "0.92rem" }}>
+                    <p className="text-[0.92rem] text-app-text-muted">
                       {t(
                         "editMenu.importFileHint",
                         "Supported formats: JPG, PNG, WebP, and PDF. Clear scans work best.",
                       )}
                     </p>
                   </div>
-                  <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", justifyContent: "center" }}>
+                  <div className="flex flex-wrap justify-center gap-3">
                     <button
                       type="button"
                       className="btn btn-outline"
@@ -219,7 +179,7 @@ export default function MenuImportModal({
                   ref={fileInputRef}
                   type="file"
                   accept="image/*,.pdf,application/pdf"
-                  style={{ display: "none" }}
+                  className="hidden"
                   onChange={(event) => {
                     const nextFile = event.target.files?.[0] || null;
                     setSelectedFile(nextFile);
@@ -228,27 +188,24 @@ export default function MenuImportModal({
                 />
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                  gap: "0.75rem",
-                }}
-              >
+              <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
                 {[
-                  t("editMenu.importStepOne", "Extract categories, items, descriptions, and prices"),
-                  t("editMenu.importStepTwo", "Keep uncertainty in warnings instead of guessing silently"),
-                  t("editMenu.importStepThree", "Let you review and edit the draft before import"),
+                  t(
+                    "editMenu.importStepOne",
+                    "Extract categories, items, descriptions, and prices",
+                  ),
+                  t(
+                    "editMenu.importStepTwo",
+                    "Keep uncertainty in warnings instead of guessing silently",
+                  ),
+                  t(
+                    "editMenu.importStepThree",
+                    "Let you review and edit the draft before import",
+                  ),
                 ].map((step) => (
                   <div
                     key={step}
-                    style={{
-                      padding: "0.9rem 1rem",
-                      borderRadius: "var(--radius-md)",
-                      border: "1px solid var(--color-border)",
-                      backgroundColor: "var(--color-surface)",
-                      fontSize: "0.92rem",
-                    }}
+                    className="rounded-[0.75rem] border border-app-border bg-app-surface px-4 py-3.5 text-[0.92rem]"
                   >
                     {step}
                   </div>
@@ -257,24 +214,13 @@ export default function MenuImportModal({
             </>
           ) : (
             <>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "1rem",
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                  padding: "1rem 1.1rem",
-                  borderRadius: "var(--radius-md)",
-                  backgroundColor: "var(--color-surface-hover)",
-                }}
-              >
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-[0.75rem] bg-app-surface-hover px-[1.1rem] py-4">
                 <div>
-                  <p style={{ fontWeight: 600 }}>
-                    {proposal.sourceFileName}
-                  </p>
-                  <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-                    {proposal.categories.length} {t("editMenu.importCategoriesCount", "categories")} · {itemCount} {t("editMenu.importItemsCount", "items")}
+                  <p className="font-semibold">{proposal.sourceFileName}</p>
+                  <p className="text-[0.9rem] text-app-text-muted">
+                    {proposal.categories.length}{" "}
+                    {t("editMenu.importCategoriesCount", "categories")} ·{" "}
+                    {itemCount} {t("editMenu.importItemsCount", "items")}
                     {proposal.detectedLanguage
                       ? ` · ${t("editMenu.importDetectedLanguage", "detected language")}: ${proposal.detectedLanguage}`
                       : ""}
@@ -294,97 +240,74 @@ export default function MenuImportModal({
               </div>
 
               {proposal.warnings.length > 0 && (
-                <div
-                  style={{
-                    borderRadius: "var(--radius-md)",
-                    border: "1px solid #f2d8a7",
-                    backgroundColor: "#fff8eb",
-                    padding: "1rem 1.1rem",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.55rem",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 600 }}>
+                <div className="app-warning-panel">
+                  <div className="flex items-center gap-2 font-semibold">
                     <TriangleAlert size={16} />
                     {t("editMenu.importWarnings", "Warnings to review")}
                   </div>
                   {proposal.warnings.map((warning) => (
-                    <p key={warning} style={{ fontSize: "0.92rem", color: "#7c5f1f" }}>
+                    <p key={warning} className="text-[0.92rem] text-amber-800">
                       {warning}
                     </p>
                   ))}
                 </div>
               )}
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxHeight: "50vh", overflowY: "auto", paddingRight: "0.25rem" }}>
+              <div className="flex max-h-[50vh] flex-col gap-4 overflow-y-auto pr-1">
                 {proposal.categories.map((category) => (
                   <section
                     key={category.id}
-                    style={{
-                      border: "1px solid var(--color-border)",
-                      borderRadius: "var(--radius-lg)",
-                      padding: "1rem",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.9rem",
-                    }}
+                    className="flex flex-col gap-4 rounded-[1.25rem] border border-app-border p-4"
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: "0.75rem",
-                        alignItems: "center",
-                      }}
-                    >
+                    <div className="flex items-center justify-between gap-3">
                       <input
                         className="form-input"
                         value={category.name}
                         onChange={(event) =>
                           setProposal((current) =>
                             current
-                              ? updateImportCategory(current, category.id, (draftCategory) => ({
-                                  ...draftCategory,
-                                  name: event.target.value,
-                                }))
+                              ? updateImportCategory(
+                                  current,
+                                  category.id,
+                                  (draftCategory) => ({
+                                    ...draftCategory,
+                                    name: event.target.value,
+                                  }),
+                                )
                               : current,
                           )
                         }
-                        placeholder={t("editMenu.importCategoryName", "Category name")}
+                        placeholder={t(
+                          "editMenu.importCategoryName",
+                          "Category name",
+                        )}
                       />
                       <button
                         type="button"
-                        className="btn btn-ghost btn-danger"
+                        className="btn btn-ghost btn-danger p-[0.45rem]"
                         onClick={() =>
                           setProposal((current) =>
                             current
                               ? {
                                   ...current,
                                   categories: current.categories.filter(
-                                    (draftCategory) => draftCategory.id !== category.id,
+                                    (draftCategory) =>
+                                      draftCategory.id !== category.id,
                                   ),
                                 }
                               : current,
                           )
                         }
-                        style={{ padding: "0.45rem" }}
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
 
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    <div className="flex flex-col gap-3">
                       {category.items.map((item) => (
                         <div
                           key={item.id}
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "minmax(0, 1.2fr) minmax(0, 1fr) 120px auto",
-                            gap: "0.75rem",
-                            alignItems: "start",
-                          }}
-                          className="menu-import-item-grid"
+                          className="menu-import-item-grid grid items-start gap-3 [grid-template-columns:minmax(0,1.2fr)_minmax(0,1fr)_120px_auto]"
                         >
                           <input
                             className="form-input"
@@ -392,10 +315,15 @@ export default function MenuImportModal({
                             onChange={(event) =>
                               setProposal((current) =>
                                 current
-                                  ? updateImportItem(current, category.id, item.id, (draftItem) => ({
-                                      ...draftItem,
-                                      name: event.target.value,
-                                    }))
+                                  ? updateImportItem(
+                                      current,
+                                      category.id,
+                                      item.id,
+                                      (draftItem) => ({
+                                        ...draftItem,
+                                        name: event.target.value,
+                                      }),
+                                    )
                                   : current,
                               )
                             }
@@ -407,14 +335,22 @@ export default function MenuImportModal({
                             onChange={(event) =>
                               setProposal((current) =>
                                 current
-                                  ? updateImportItem(current, category.id, item.id, (draftItem) => ({
-                                      ...draftItem,
-                                      description: event.target.value,
-                                    }))
+                                  ? updateImportItem(
+                                      current,
+                                      category.id,
+                                      item.id,
+                                      (draftItem) => ({
+                                        ...draftItem,
+                                        description: event.target.value,
+                                      }),
+                                    )
                                   : current,
                               )
                             }
-                            placeholder={t("editMenu.descriptionOptional", "Description (Optional)")}
+                            placeholder={t(
+                              "editMenu.descriptionOptional",
+                              "Description (Optional)",
+                            )}
                           />
                           <input
                             className="form-input"
@@ -422,10 +358,15 @@ export default function MenuImportModal({
                             onChange={(event) =>
                               setProposal((current) =>
                                 current
-                                  ? updateImportItem(current, category.id, item.id, (draftItem) => ({
-                                      ...draftItem,
-                                      price: event.target.value,
-                                    }))
+                                  ? updateImportItem(
+                                      current,
+                                      category.id,
+                                      item.id,
+                                      (draftItem) => ({
+                                        ...draftItem,
+                                        price: event.target.value,
+                                      }),
+                                    )
                                   : current,
                               )
                             }
@@ -433,20 +374,24 @@ export default function MenuImportModal({
                           />
                           <button
                             type="button"
-                            className="btn btn-ghost"
+                            className="btn btn-ghost px-[0.55rem] py-[0.7rem]"
                             onClick={() =>
                               setProposal((current) =>
                                 current
-                                  ? updateImportCategory(current, category.id, (draftCategory) => ({
-                                      ...draftCategory,
-                                      items: draftCategory.items.filter(
-                                        (draftItem) => draftItem.id !== item.id,
-                                      ),
-                                    }))
+                                  ? updateImportCategory(
+                                      current,
+                                      category.id,
+                                      (draftCategory) => ({
+                                        ...draftCategory,
+                                        items: draftCategory.items.filter(
+                                          (draftItem) =>
+                                            draftItem.id !== item.id,
+                                        ),
+                                      }),
+                                    )
                                   : current,
                               )
                             }
-                            style={{ padding: "0.7rem 0.55rem" }}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -459,32 +404,10 @@ export default function MenuImportModal({
             </>
           )}
 
-          {error && (
-            <div
-              style={{
-                borderRadius: "var(--radius-md)",
-                border: "1px solid #ffd4d4",
-                backgroundColor: "#fff5f5",
-                color: "#9d2b2b",
-                padding: "0.95rem 1rem",
-                fontSize: "0.92rem",
-              }}
-            >
-              {error}
-            </div>
-          )}
+          {error && <div className="app-error-panel">{error}</div>}
         </div>
 
-        <div
-          style={{
-            padding: "1rem 1.5rem 1.5rem",
-            display: "flex",
-            justifyContent: "space-between",
-            gap: "0.75rem",
-            flexWrap: "wrap",
-            borderTop: "1px solid var(--color-border)",
-          }}
-        >
+        <div className="app-modal-footer">
           <button
             type="button"
             className="btn btn-ghost"

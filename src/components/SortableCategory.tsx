@@ -56,43 +56,27 @@ export default function SortableCategory({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div
-        className="flex justify-between items-center"
-        style={{
-          marginBottom: "1rem",
-          paddingBottom: "0.5rem",
-          borderBottom: "1px solid var(--color-border)",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: "1.25rem",
-            fontWeight: 600,
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-          }}
-        >
+      <div className="mb-4 flex items-center justify-between border-b border-app-border pb-2">
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
           <div
             {...attributes}
             {...listeners}
-            style={{ cursor: "grab", display: "flex", touchAction: "none" }}
+            className="flex cursor-grab touch-none text-app-text-muted"
           >
-            <GripVertical size={18} color="var(--color-text-muted)" />
+            <GripVertical className="h-[18px] w-[18px]" />
           </div>
           {category.name}
         </h2>
         <button
           onClick={() => onDeleteCategory(category.id)}
-          className="btn btn-ghost btn-danger"
-          style={{ padding: "0.4rem" }}
+          className="btn btn-ghost btn-danger p-[0.4rem]"
         >
           <Trash2 size={16} />
         </button>
       </div>
 
       {items.length === 0 ? (
-        <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem" }}>
+        <p className="text-[0.875rem] text-app-text-muted">
           {t("editMenu.noItemsInCategory", "No items in this category yet.")}
         </p>
       ) : (
@@ -101,7 +85,7 @@ export default function SortableCategory({
           collisionDetection={closestCenter}
           onDragEnd={onItemDragEnd}
         >
-          <div className="flex flex-col gap-4" style={{ paddingTop: "0.35rem" }}>
+          <div className="flex flex-col gap-4 pt-1.5">
             <SortableContext
               items={items.map((item) => item.id)}
               strategy={verticalListSortingStrategy}

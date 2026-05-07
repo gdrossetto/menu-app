@@ -143,10 +143,7 @@ const PhoneMockup = () => {
             </div>
           </div>
 
-          <div
-            className="-mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-2"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
+          <div className="hide-scrollbar -mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-2">
             <div className="whitespace-nowrap rounded-full bg-[#231f20] px-4 py-2 text-xs font-medium text-white">
               {categories[0]}
             </div>
@@ -343,14 +340,7 @@ const Hero = () => {
 
   return (
     <section className="relative overflow-hidden bg-slate-50 pt-32 pb-20 lg:pt-48 lg:pb-32">
-      <div
-        className="absolute inset-0 z-0 opacity-50"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-        }}
-      />
+      <div className="bg-app-grid absolute inset-0 z-0 opacity-50" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-8">

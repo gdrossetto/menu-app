@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import type { CSSProperties } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -25,7 +24,6 @@ export default function PublicMenu() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -66,28 +64,26 @@ export default function PublicMenu() {
     void Promise.resolve().then(loadMenu);
   }, [loadMenu]);
 
-  // Smooth scroll to category
   const scrollToCategory = (id: string) => {
     setActiveCategory(id);
     const element = document.getElementById(`category-${id}`);
     if (element) {
-      const y = element.getBoundingClientRect().top + window.scrollY - 140; // offset for sticky header
+      const y = element.getBoundingClientRect().top + window.scrollY - 140;
       window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
 
-  // Update active category on scroll
   useEffect(() => {
     const handleScroll = () => {
-      const offsets = categories.map((c) => {
-        const el = document.getElementById(`category-${c.id}`);
+      const offsets = categories.map((category) => {
+        const element = document.getElementById(`category-${category.id}`);
         return {
-          id: c.id,
-          top: el ? el.getBoundingClientRect().top : Infinity,
+          id: category.id,
+          top: element ? element.getBoundingClientRect().top : Infinity,
         };
       });
 
-      const current = offsets.filter((o) => o.top <= 160).pop();
+      const current = offsets.filter((offset) => offset.top <= 160).pop();
       if (current && current.id !== activeCategory) {
         setActiveCategory(current.id);
       }
@@ -97,67 +93,43 @@ export default function PublicMenu() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [categories, activeCategory]);
 
+  useEffect(() => {
+    if (restaurant?.primary_color && restaurant.primary_color !== "#000000") {
+      document.documentElement.style.setProperty(
+        "--restaurant-primary",
+        restaurant.primary_color,
+      );
+      return () => {
+        document.documentElement.style.removeProperty("--restaurant-primary");
+      };
+    }
+
+    document.documentElement.style.removeProperty("--restaurant-primary");
+    return () => {
+      document.documentElement.style.removeProperty("--restaurant-primary");
+    };
+  }, [restaurant?.primary_color]);
+
   if (loading) {
     return <LoadingSpinner />;
   }
 
   if (error || !restaurant) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          padding: "2rem",
-          textAlign: "center",
-        }}
-      >
+      <div className="flex h-screen items-center justify-center p-8 text-center">
         <h2>{error || "Menu not found"}</h2>
       </div>
     );
   }
 
   return (
-    <div
-      style={
-        {
-          backgroundColor: "var(--color-bg)",
-          minHeight: "100vh",
-          paddingBottom: "4rem",
-          ...(restaurant.primary_color && restaurant.primary_color !== "#000000"
-            ? { "--color-primary": restaurant.primary_color }
-            : {}),
-        } as CSSProperties
-      }
-    >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "rgba(255, 255, 255, 0.9)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          padding: "2.5rem 1.5rem 1rem",
-          textAlign: "center",
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-          boxShadow: "0 1px 0 rgba(0,0,0,0.03)",
-        }}
-      >
-        {/* Language Switcher */}
-        <div style={{ position: "absolute", top: "1rem", right: "1.5rem" }}>
+    <div className="min-h-screen bg-app-bg pb-16">
+      <header className="sticky top-0 z-10 bg-white/90 px-6 pt-10 pb-4 text-center shadow-[0_1px_0_rgba(0,0,0,0.03)] backdrop-blur-[10px]">
+        <div className="absolute top-4 right-6">
           <select
             value={i18n.language.split("-")[0]}
-            onChange={(e) => i18n.changeLanguage(e.target.value)}
-            style={{
-              padding: "0.25rem 0.5rem",
-              fontSize: "0.8rem",
-              borderRadius: "var(--radius-sm)",
-              border: "1px solid var(--color-border)",
-              background: "white",
-              cursor: "pointer",
-            }}
+            onChange={(event) => i18n.changeLanguage(event.target.value)}
+            className="rounded-[0.5rem] border border-app-border bg-white px-2 py-1 text-[0.8rem]"
           >
             <option value="en">EN</option>
             <option value="pt">PT</option>
@@ -168,201 +140,89 @@ export default function PublicMenu() {
           <img
             src={restaurant.logo_url}
             alt={restaurant.name}
-            style={{
-              height: "60px",
-              margin: "0 auto 1rem",
-              borderRadius: "var(--radius-sm)",
-            }}
+            className="mx-auto mb-4 h-[60px] rounded-[0.5rem]"
           />
         )}
-        <h1
-          style={{
-            fontSize: "1.75rem",
-            fontWeight: 700,
-            color: "var(--color-primary)",
-            letterSpacing: "-0.02em",
-            margin: 0,
-          }}
-        >
+        <h1 className="m-0 text-[1.75rem] font-bold tracking-[-0.02em] text-[var(--restaurant-primary,var(--color-app-primary))]">
           {restaurant.name}
         </h1>
 
-        {/* Horizontal scrollable categories */}
         {categories.length > 0 && (
-          <div
-            style={{
-              display: "flex",
-              overflowX: "auto",
-              gap: "0.5rem",
-              marginTop: "1.5rem",
-              paddingBottom: "0.5rem",
-              scrollbarWidth: "none", // Firefox
-              msOverflowStyle: "none", // IE and Edge
-            }}
-            className="hide-scrollbar"
-          >
-            {categories.map((cat) => (
+          <div className="hide-scrollbar mt-6 flex gap-2 overflow-x-auto pb-2">
+            {categories.map((category) => (
               <button
-                key={cat.id}
-                onClick={() => scrollToCategory(cat.id)}
-                style={{
-                  padding: "0.5rem 1.25rem",
-                  borderRadius: "var(--radius-full)",
-                  whiteSpace: "nowrap",
-                  fontWeight: 500,
-                  fontSize: "0.9rem",
-                  backgroundColor:
-                    activeCategory === cat.id
-                      ? "var(--color-primary)"
-                      : "var(--color-surface-hover)",
-                  color:
-                    activeCategory === cat.id
-                      ? "white"
-                      : "var(--color-text-muted)",
-                  border: "none",
-                  transition: "all var(--transition-fast)",
-                }}
+                key={category.id}
+                onClick={() => scrollToCategory(category.id)}
+                className={`whitespace-nowrap rounded-full px-5 py-2 text-[0.9rem] font-medium transition-all duration-200 ${
+                  activeCategory === category.id
+                    ? "bg-[var(--restaurant-primary,var(--color-app-primary))] text-white"
+                    : "bg-app-surface-hover text-app-text-muted"
+                }`}
               >
-                {cat.name}
+                {category.name}
               </button>
             ))}
           </div>
         )}
       </header>
 
-      {/* Menu Content */}
-      <main
-        style={{ padding: "2rem 1.5rem", maxWidth: "600px", margin: "0 auto" }}
-      >
+      <main className="mx-auto max-w-[600px] px-6 py-8">
         {categories.length === 0 ? (
-          <p style={{ textAlign: "center", color: "var(--color-text-muted)" }}>
-            Menu is empty.
-          </p>
+          <p className="text-center text-app-text-muted">Menu is empty.</p>
         ) : (
           categories.map((category) => {
-            const catItems = items.filter((i) => i.category_id === category.id);
-            if (catItems.length === 0) return null;
+            const categoryItems = items.filter(
+              (item) => item.category_id === category.id,
+            );
+            if (categoryItems.length === 0) return null;
 
             return (
               <section
                 key={category.id}
                 id={`category-${category.id}`}
-                style={{ marginBottom: "3.5rem", scrollMarginTop: "160px" }}
+                className="mb-14 scroll-mt-40"
               >
-                <h2
-                  style={{
-                    fontSize: "1.4rem",
-                    fontWeight: 600,
-                    marginBottom: "1.5rem",
-                    color: "var(--color-primary)",
-                    letterSpacing: "-0.01em",
-                  }}
-                >
+                <h2 className="mb-6 text-[1.4rem] font-semibold tracking-[-0.01em] text-[var(--restaurant-primary,var(--color-app-primary))]">
                   {category.name}
                 </h2>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem",
-                  }}
-                >
-                  {catItems.map((item) => (
+                <div className="flex flex-col gap-4">
+                  {categoryItems.map((item) => (
                     <div
                       key={item.id}
-                      className="card"
-                      style={{
-                        display: "flex",
-                        overflow: "hidden",
-                        border: "none",
-                        boxShadow: "var(--shadow-sm)",
-                        backgroundColor: "var(--color-surface)",
-                        filter: item.is_available ? "none" : "grayscale(100%)",
-                        opacity: item.is_available ? 1 : 0.7,
-                      }}
+                      className={`card flex overflow-hidden border-none bg-app-surface shadow-app-sm ${
+                        item.is_available ? "" : "grayscale opacity-70"
+                      }`}
                     >
-                      <div style={{ flex: 1, padding: "1.25rem" }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            gap: "1rem",
-                          }}
-                        >
-                          <h3
-                            style={{
-                              fontSize: "1.1rem",
-                              fontWeight: 600,
-                              margin: 0,
-                              color: "var(--color-primary)",
-                            }}
-                          >
+                      <div className="flex-1 p-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <h3 className="m-0 text-[1.1rem] font-semibold text-[var(--restaurant-primary,var(--color-app-primary))]">
                             {item.name}
                             {!item.is_available && (
-                              <span
-                                style={{
-                                  display: "inline-flex",
-                                  marginLeft: "0.5rem",
-                                  fontSize: "0.7rem",
-                                  backgroundColor: "var(--color-border)",
-                                  padding: "0.2rem 0.4rem",
-                                  borderRadius: "var(--radius-sm)",
-                                  color: "var(--color-surface)",
-                                  fontWeight: 600,
-                                  verticalAlign: "middle",
-                                  textTransform: "uppercase",
-                                  letterSpacing: "0.05em",
-                                }}
-                              >
+                              <span className="ml-2 inline-flex rounded-[0.5rem] bg-app-border px-1.5 py-0.5 align-middle text-[0.7rem] font-semibold uppercase tracking-[0.05em] text-app-surface">
                                 Out of Stock
                               </span>
                             )}
                           </h3>
-                          <span
-                            style={{
-                              fontWeight: 600,
-                              color: "var(--color-text)",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
+                          <span className="whitespace-nowrap font-semibold text-app-text">
                             {restaurant.currency_symbol || "$"}
                             {item.price.toFixed(2)}
                           </span>
                         </div>
                         {item.description && (
-                          <p
-                            style={{
-                              marginTop: "0.5rem",
-                              fontSize: "0.9rem",
-                              color: "var(--color-text-muted)",
-                              lineHeight: 1.5,
-                            }}
-                          >
+                          <p className="mt-2 text-[0.9rem] leading-[1.5] text-app-text-muted">
                             {item.description}
                           </p>
                         )}
                       </div>
                       {item.image_url && (
                         <div
-                          style={{
-                            width: "120px",
-                            flexShrink: 0,
-                            padding: "0.75rem",
-                            paddingLeft: 0,
-                            cursor: "pointer",
-                          }}
+                          className="w-[120px] shrink-0 cursor-pointer p-3 pl-0"
                           onClick={() => setSelectedImage(item.image_url)}
                         >
                           <img
                             src={item.image_url}
                             alt={item.name}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              borderRadius: "var(--radius-sm)",
-                            }}
+                            className="h-full w-full rounded-[0.5rem] object-cover"
                           />
                         </div>
                       )}
@@ -375,69 +235,28 @@ export default function PublicMenu() {
         )}
       </main>
 
-      <footer
-        style={{
-          textAlign: "center",
-          padding: "3rem 1.5rem",
-          color: "var(--color-border)",
-          fontSize: "0.85rem",
-        }}
-      >
-        <p style={{ color: "var(--color-text-muted)" }}>
+      <footer className="px-6 py-12 text-center text-[0.85rem]">
+        <p className="text-app-text-muted">
           {t("publicMenu.poweredBy", "Powered by MenuQR")}
         </p>
       </footer>
 
-      {/* Image Lightbox */}
       {selectedImage && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.85)",
-            zIndex: 100,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "1.5rem",
-            backdropFilter: "blur(4px)",
-            WebkitBackdropFilter: "blur(4px)",
-          }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-6 backdrop-blur-[4px]"
           onClick={() => setSelectedImage(null)}
         >
           <button
             onClick={() => setSelectedImage(null)}
-            style={{
-              position: "absolute",
-              top: "1.5rem",
-              right: "1.5rem",
-              background: "rgba(255, 255, 255, 0.2)",
-              border: "none",
-              borderRadius: "50%",
-              width: "40px",
-              height: "40px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              color: "white",
-              cursor: "pointer",
-            }}
+            className="absolute top-6 right-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white"
           >
             ✕
           </button>
           <img
             src={selectedImage}
             alt="Full size preview"
-            style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
-              objectFit: "contain",
-              borderRadius: "var(--radius-sm)",
-            }}
-            onClick={(e) => e.stopPropagation()}
+            className="max-h-full max-w-full rounded-[0.5rem] object-contain"
+            onClick={(event) => event.stopPropagation()}
           />
         </div>
       )}

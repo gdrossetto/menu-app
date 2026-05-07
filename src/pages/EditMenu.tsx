@@ -370,7 +370,7 @@ export default function EditMenu() {
   if (!restaurantId) {
     return (
       <DashboardLayout>
-        <div style={{ textAlign: "center", marginTop: "4rem" }}>
+        <div className="app-empty-state">
           <h2>Please create a restaurant first in the Dashboard.</h2>
         </div>
       </DashboardLayout>
@@ -380,65 +380,32 @@ export default function EditMenu() {
   return (
     <DashboardLayout>
       <div className="animate-fade-in">
-        <div
-          className="flex justify-between items-center"
-          style={{ marginBottom: "2rem" }}
-        >
+        <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1
-              style={{
-                fontSize: "2rem",
-                fontWeight: 700,
-                color: "var(--color-primary)",
-                letterSpacing: "-0.02em",
-              }}
-            >
+            <h1 className="app-page-title">
               {t('editMenu.title', 'Edit Menu')}
             </h1>
-            <p
-              style={{ color: "var(--color-text-muted)", marginTop: "0.25rem" }}
-            >
+            <p className="app-page-subtitle">
               {t('editMenu.subtitle', 'Organize your categories and items.')}
             </p>
           </div>
         </div>
 
         <div
-          className="card"
-          style={{
-            marginBottom: "1.5rem",
-            border: "none",
-            background:
-              "linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-hover) 100%)",
-          }}
+          className="card mb-6 border-none bg-gradient-to-b from-app-surface to-app-surface-hover"
         >
           <div className="card-body flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div style={{ maxWidth: "560px" }}>
-              <p
-                style={{
-                  fontSize: "0.78rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: "var(--color-primary)",
-                  marginBottom: "0.4rem",
-                }}
-              >
+            <div className="max-w-[560px]">
+              <p className="mb-1.5 text-[0.78rem] font-bold uppercase tracking-[0.06em] text-app-primary">
                 {t("editMenu.importSellEyebrow", "Speed up setup")}
               </p>
-              <h3
-                style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 600,
-                  marginBottom: "0.35rem",
-                }}
-              >
+              <h3 className="mb-1.5 text-[1.1rem] font-semibold">
                 {t(
                   "editMenu.importSellTitle",
                   "Already have a printed or existing menu?",
                 )}
               </h3>
-              <p style={{ color: "var(--color-text-muted)", fontSize: "0.94rem" }}>
+              <p className="text-[0.94rem] text-app-text-muted">
                 {t(
                   "editMenu.importSellSubtitle",
                   "Import a photo or PDF, review the draft, and add the items without rebuilding everything by hand.",
@@ -448,9 +415,8 @@ export default function EditMenu() {
 
             <button
               type="button"
-              className="btn btn-primary"
               onClick={() => setIsImportModalOpen(true)}
-              style={{ whiteSpace: "nowrap" }}
+              className="btn btn-primary whitespace-nowrap"
             >
               <FileUp size={18} />
               {t("editMenu.importCta", "Import menu")}
@@ -458,42 +424,13 @@ export default function EditMenu() {
           </div>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr auto 1fr",
-            alignItems: "center",
-            gap: "1rem",
-            marginBottom: "1.5rem",
-          }}
-        >
-          <div
-            style={{
-              height: "1px",
-              background:
-                "linear-gradient(90deg, rgba(0,0,0,0.04) 0%, var(--color-border) 100%)",
-            }}
-          />
-          <div style={{ textAlign: "center" }}>
-            <p
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: "var(--color-text-muted)",
-                marginBottom: "0.2rem",
-              }}
-            >
+        <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+          <div className="h-px bg-gradient-to-r from-black/4 to-app-border" />
+          <div className="text-center">
+            <p className="mb-1 text-[0.78rem] font-bold uppercase tracking-[0.06em] text-app-text-muted">
               {t("editMenu.manualDividerEyebrow", "Or")}
             </p>
-            <p
-              style={{
-                fontSize: "0.96rem",
-                fontWeight: 600,
-                color: "var(--color-text)",
-              }}
-            >
+            <p className="text-[0.96rem] font-semibold text-app-text">
               {hasExistingMenuItems
                 ? t(
                     "editMenu.manualDividerTitleExisting",
@@ -502,30 +439,18 @@ export default function EditMenu() {
                 : t("editMenu.manualDividerTitleEmpty", "Build your menu from scratch")}
             </p>
           </div>
-          <div
-            style={{
-              height: "1px",
-              background:
-                "linear-gradient(90deg, var(--color-border) 0%, rgba(0,0,0,0.04) 100%)",
-            }}
-          />
+          <div className="h-px bg-gradient-to-r from-app-border to-black/4" />
         </div>
 
         {/* Add Category Form */}
         <div
-          className="card"
-          style={{
-            marginBottom: "2rem",
-            border: "none",
-            background: "var(--color-surface)",
-          }}
+          className="card mb-8 border-none bg-app-surface"
         >
           <div className="card-body">
             <form onSubmit={addCategory} className="flex flex-col items-center gap-4 md:flex-row">
               <input
                 type="text"
-                className="form-input"
-                style={{ flex: 1 }}
+                className="form-input flex-1"
                 placeholder={t('editMenu.newCategoryPlaceholder', 'New Category Name (e.g., Starters)')}
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
@@ -544,22 +469,10 @@ export default function EditMenu() {
         {/* Add Item Form */}
         {categories.length > 0 && (
           <div
-            className="card"
-            style={{
-              marginBottom: "3rem",
-              border: "none",
-              background: "var(--color-bg)",
-              boxShadow: "none",
-            }}
+            className="card mb-12 border-none bg-app-bg shadow-none"
           >
-            <div className="card-body" style={{ padding: "0" }}>
-              <h3
-                style={{
-                  fontSize: "1rem",
-                  fontWeight: 600,
-                  marginBottom: "1rem",
-                }}
-              >
+            <div className="p-0">
+              <h3 className="mb-4 text-base font-semibold">
                 {t('editMenu.addNewItem', 'Add New Item')}
               </h3>
               <form
@@ -595,8 +508,7 @@ export default function EditMenu() {
                 />
                 <input
                   type="text"
-                  className="form-input"
-                  style={{ gridColumn: "1 / -1" }}
+                  className="form-input md:col-span-2"
                   placeholder={t('editMenu.descriptionOptional', 'Description (Optional)')}
                   value={newItem.description}
                   onChange={(e) =>
@@ -616,25 +528,11 @@ export default function EditMenu() {
                 />
 
                 <div
-                  className="form-input"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    cursor: "pointer",
-                    padding: "0.5rem 1rem",
-                  }}
+                  className="app-upload-trigger py-2"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <Upload size={16} color="var(--color-text-muted)" />
-                  <span
-                    style={{
-                      fontSize: "0.9rem",
-                      color: newItemImageFile
-                        ? "var(--color-text)"
-                        : "var(--color-text-muted)",
-                    }}
-                  >
+                  <Upload className="h-4 w-4 text-app-text-muted" />
+                  <span className={`text-[0.9rem] ${newItemImageFile ? "text-app-text" : "text-app-text-muted"}`}>
                     {newItemImageFile
                       ? newItemImageFile.name
                       : t('editMenu.uploadImageOptional', 'Upload Image (Optional)')}
@@ -643,7 +541,7 @@ export default function EditMenu() {
                     type="file"
                     accept="image/*"
                     ref={fileInputRef}
-                    style={{ display: "none" }}
+                    className="hidden"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         setNewItemImageFile(e.target.files[0]);
@@ -652,13 +550,7 @@ export default function EditMenu() {
                   />
                 </div>
 
-                <div
-                  style={{
-                    gridColumn: "1 / -1",
-                    display: "flex",
-                    justifyContent: "flex-end",
-                  }}
-                >
+                <div className="flex justify-end md:col-span-2">
                   <button
                     type="submit"
                     className="btn btn-primary"
@@ -724,26 +616,22 @@ export default function EditMenu() {
             if (!uploading) setEditingItem(null);
           }}
         >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div
-              className="flex justify-between items-center"
-              style={{ marginBottom: "1.5rem" }}
-            >
-              <h3 style={{ fontSize: "1.25rem", fontWeight: 600 }}>
+          <div className="app-modal-shell max-w-[500px]" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="text-[1.25rem] font-semibold">
                 {t('editMenu.editItemTitle', 'Edit Item')}
               </h3>
               <button
                 onClick={() => {
                   if (!uploading) setEditingItem(null);
                 }}
-                className="btn btn-ghost"
-                style={{ padding: "0.4rem" }}
+                className="app-icon-button"
               >
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={updateItem} className="flex flex-col gap-4">
-              <div className="form-group" style={{ marginBottom: 0 }}>
+              <div className="form-group">
                 <label className="form-label">{t('editMenu.nameLabel', 'Name')}</label>
                 <input
                   type="text"
@@ -755,7 +643,7 @@ export default function EditMenu() {
                   required
                 />
               </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
+              <div className="form-group">
                 <label className="form-label">{t('editMenu.descriptionLabel', 'Description')}</label>
                 <textarea
                   className="form-input"
@@ -769,7 +657,7 @@ export default function EditMenu() {
                   rows={2}
                 />
               </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
+              <div className="form-group">
                 <label className="form-label">{t('editMenu.priceLabel', 'Price')}</label>
                 <input
                   type="number"
@@ -786,34 +674,23 @@ export default function EditMenu() {
                 />
               </div>
 
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <div className="form-group">
+                <label className="form-label flex cursor-pointer items-center gap-2">
                   <input 
                     type="checkbox" 
                     checked={editingItem.is_available} 
                     onChange={e => setEditingItem({ ...editingItem, is_available: e.target.checked })} 
-                    style={{ width: '1rem', height: '1rem' }}
+                    className="h-4 w-4"
                   />
                   {t('editMenu.itemIsAvailable', 'Item is Available (In Stock)')}
                 </label>
               </div>
 
-              <div className="form-group" style={{ marginBottom: 0 }}>
+              <div className="form-group">
                 <label className="form-label">{t('editMenu.imageLabel', 'Image')}</label>
-                <div
-                  style={{ display: "flex", gap: "1rem", alignItems: "center" }}
-                >
+                <div className="flex items-center gap-4">
                   {editingItemImageFile || editingItem.image_url ? (
-                    <div
-                      style={{
-                        width: "64px",
-                        height: "64px",
-                        flexShrink: 0,
-                        borderRadius: "var(--radius-sm)",
-                        overflow: "hidden",
-                        border: "1px solid var(--color-border)",
-                      }}
-                    >
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[0.5rem] border border-app-border">
                       <img
                         src={
                           editingItemImageFile
@@ -821,37 +698,16 @@ export default function EditMenu() {
                             : editingItem.image_url!
                         }
                         alt="Preview"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
+                        className="h-full w-full object-cover"
                       />
                     </div>
                   ) : null}
                   <div
-                    className="form-input"
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                      cursor: "pointer",
-                    }}
+                    className="app-upload-trigger flex-1"
                     onClick={() => editFileInputRef.current?.click()}
                   >
-                    <Upload size={16} color="var(--color-text-muted)" />
-                    <span
-                      style={{
-                        fontSize: "0.9rem",
-                        color: editingItemImageFile
-                          ? "var(--color-text)"
-                          : "var(--color-text-muted)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
+                    <Upload className="h-4 w-4 text-app-text-muted" />
+                    <span className={`truncate text-[0.9rem] ${editingItemImageFile ? "text-app-text" : "text-app-text-muted"}`}>
                       {editingItemImageFile
                         ? editingItemImageFile.name
                         : editingItem.image_url
@@ -862,7 +718,7 @@ export default function EditMenu() {
                       type="file"
                       accept="image/*"
                       ref={editFileInputRef}
-                      style={{ display: "none" }}
+                      className="hidden"
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
                           setEditingItemImageFile(e.target.files[0]);
@@ -873,10 +729,7 @@ export default function EditMenu() {
                 </div>
               </div>
 
-              <div
-                className="flex justify-end gap-3"
-                style={{ marginTop: "1rem" }}
-              >
+              <div className="mt-4 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => {

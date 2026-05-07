@@ -40,25 +40,8 @@ function RequireAuth({ children }: { children: ReactElement }) {
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "var(--color-bg)",
-        }}
-      >
-        <div
-          className="spinner"
-          style={{
-            width: "30px",
-            height: "30px",
-            border: "2px solid var(--color-border)",
-            borderTopColor: "var(--color-primary)",
-            borderRadius: "50%",
-          }}
-        ></div>
+      <div className="app-screen-center">
+        <div className="app-spinner" />
       </div>
     );
   }

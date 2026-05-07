@@ -23,33 +23,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false)
 
-  const sidebarWidth = '260px'
+  const navLinkClass = (active: boolean) =>
+    `flex items-center gap-3 rounded-full px-4 py-3 text-[0.95rem] font-medium transition-all duration-200 ${
+      active
+        ? "bg-app-surface text-app-primary shadow-app-sm"
+        : "text-app-text-muted hover:bg-app-surface hover:text-app-text"
+    }`
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: 'var(--color-bg)',
-      display: 'flex',
-      flexDirection: isMobile ? 'column' : 'row'
-    }}>
+    <div className={`min-h-screen bg-app-bg ${isMobile ? 'flex flex-col' : 'flex flex-row'}`}>
       {/* Mobile Header */}
       {isMobile && (
-        <header style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '1rem 1.5rem',
-          backgroundColor: 'var(--color-surface)',
-          borderBottom: '1px solid var(--color-border)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50
-        }}>
-          <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '-0.02em', margin: 0 }}>
-            <QrCode size={22} color="var(--color-text)" />
+        <header className="sticky top-0 z-50 flex items-center justify-between border-b border-app-border bg-app-surface px-6 py-4">
+          <h1 className="m-0 flex items-center gap-2 text-[1.2rem] font-bold tracking-[-0.02em] text-app-primary">
+            <QrCode className="h-[22px] w-[22px]" />
             MenuQR
           </h1>
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="btn btn-ghost" style={{ padding: '0.4rem' }}>
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="app-icon-button">
             {isMobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
           </button>
         </header>
@@ -58,49 +48,35 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar Overlay for Mobile */}
       {isMobile && isMobileMenuOpen && (
         <div 
-          style={{ position: 'fixed', top: '60px', left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 40 }}
+          className="fixed inset-x-0 bottom-0 top-[60px] z-40 bg-black/50"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside style={{
-        width: isMobile ? '100%' : sidebarWidth,
-        backgroundColor: isMobile ? 'var(--color-surface)' : 'transparent',
-        borderRight: isMobile ? 'none' : '1px solid var(--color-border)',
-        display: isMobile ? (isMobileMenuOpen ? 'flex' : 'none') : 'flex',
-        flexDirection: 'column',
-        position: isMobile ? 'fixed' : 'sticky',
-        top: isMobile ? '60px' : 0,
-        height: isMobile ? 'calc(100vh - 60px)' : '100vh',
-        zIndex: 45,
-        boxShadow: isMobile && isMobileMenuOpen ? '0 10px 15px -3px rgba(0,0,0,0.1)' : 'none'
-      }}>
+      <aside
+        className={`z-[45] flex flex-col ${
+          isMobile
+            ? isMobileMenuOpen
+              ? 'fixed top-[60px] left-0 h-[calc(100vh-60px)] w-full bg-app-surface shadow-lg'
+              : 'hidden'
+            : 'sticky top-0 h-screen w-[260px] border-r border-app-border bg-transparent'
+        }`}
+      >
         {!isMobile && (
-          <div style={{ padding: '2rem 1.5rem 1rem' }}>
-            <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '-0.02em', margin: 0 }}>
-              <QrCode size={22} color="var(--color-text)" />
+          <div className="px-6 pt-8 pb-4">
+            <h1 className="m-0 flex items-center gap-2 text-[1.2rem] font-bold tracking-[-0.02em] text-app-primary">
+              <QrCode className="h-[22px] w-[22px]" />
               MenuQR
             </h1>
           </div>
         )}
 
-        <nav style={{ padding: '1.5rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <nav className="flex flex-1 flex-col gap-1 px-4 py-6">
           <Link
             to="/dashboard"
             onClick={closeMobileMenu}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem 1rem',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: location.pathname === '/dashboard' ? 'var(--color-surface)' : 'transparent',
-              boxShadow: location.pathname === '/dashboard' ? 'var(--shadow-sm)' : 'none',
-              color: location.pathname === '/dashboard' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-              fontWeight: location.pathname === '/dashboard' ? 600 : 500,
-              transition: 'all var(--transition-fast)'
-            }}
+            className={navLinkClass(location.pathname === '/dashboard')}
           >
             <LayoutDashboard size={18} />
             {t('dashboard.overview', 'Overview')}
@@ -108,18 +84,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <Link
             to="/dashboard/menu"
             onClick={closeMobileMenu}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem 1rem',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: location.pathname === '/dashboard/menu' ? 'var(--color-surface)' : 'transparent',
-              boxShadow: location.pathname === '/dashboard/menu' ? 'var(--shadow-sm)' : 'none',
-              color: location.pathname === '/dashboard/menu' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-              fontWeight: location.pathname === '/dashboard/menu' ? 600 : 500,
-              transition: 'all var(--transition-fast)'
-            }}
+            className={navLinkClass(location.pathname === '/dashboard/menu')}
           >
             <Menu size={18} />
             {t('dashboard.menuItems', 'Edit Menu')}
@@ -127,38 +92,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <Link
             to="/dashboard/settings"
             onClick={closeMobileMenu}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem 1rem',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: location.pathname === '/dashboard/settings' ? 'var(--color-surface)' : 'transparent',
-              boxShadow: location.pathname === '/dashboard/settings' ? 'var(--shadow-sm)' : 'none',
-              color: location.pathname === '/dashboard/settings' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-              fontWeight: location.pathname === '/dashboard/settings' ? 600 : 500,
-              transition: 'all var(--transition-fast)'
-            }}
+            className={navLinkClass(location.pathname === '/dashboard/settings')}
           >
             <Settings size={18} />
             {t('dashboard.settings', 'Settings')}
           </Link>
         </nav>
 
-        <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: isMobile ? '1px solid var(--color-border)' : 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0 0.5rem' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>{t('common.language', 'Language')}</span>
+        <div className={`flex flex-col gap-4 p-6 ${isMobile ? 'border-t border-app-border' : ''}`}>
+          <div className="flex items-center gap-2 px-2">
+            <span className="text-[0.8rem] font-semibold uppercase text-app-text-muted">{t('common.language', 'Language')}</span>
             <select 
               value={i18n.language.split('-')[0]} 
               onChange={(e) => i18n.changeLanguage(e.target.value)}
-              style={{
-                flex: 1,
-                padding: '0.25rem',
-                fontSize: '0.85rem',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--color-border)',
-                background: 'transparent'
-              }}
+              className="app-inline-select flex-1"
             >
               <option value="en">{t('common.english', 'English')}</option>
               <option value="pt">{t('common.portuguese', 'Português')}</option>
@@ -166,8 +113,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           
           <button 
-            className="btn btn-ghost" 
-            style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}
+            className="btn btn-ghost w-full justify-start text-[0.9rem] text-app-text-muted" 
             onClick={async () => {
               localStorage.removeItem('menuqr_restaurant_id')
               await supabase.auth.signOut()
@@ -181,8 +127,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: isMobile ? '1.5rem 1rem' : '3rem 2rem', overflowY: 'auto' }}>
-        <div className="mx-auto w-full" style={{ maxWidth: '900px', padding: 0 }}>
+      <main className={`flex-1 overflow-y-auto ${isMobile ? 'px-4 py-6' : 'px-8 py-12'}`}>
+        <div className="mx-auto w-full max-w-[900px]">
           {children}
         </div>
       </main>
