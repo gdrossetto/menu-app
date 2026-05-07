@@ -22,7 +22,8 @@
     "totalViews": "visualizações totais",
     "quickActions": "Ações Rápidas",
     "updateCategories": "Atualize suas categorias e itens. As alterações são salvas automaticamente.",
-    "editMenuItems": "Editar Itens do Menu"
+    "editMenuItems": "Editar Itens do Menu",
+    "viewMyMenu": "Ver meu menu"
   },
   "editMenu": {
     "title": "Editar Menu",
@@ -96,6 +97,13 @@
     "brandColorDescription": "Escolha uma cor primária para combinar com sua marca.",
     "currencySymbol": "Símbolo da Moeda",
     "currencyDescription": "Este símbolo será exibido ao lado dos preços no seu menu público.",
+    "menuTheme": "Layout do menu",
+    "menuThemeDescription": "Escolha o template usado no seu menu público. Você pode visualizar antes de salvar para comparar os layouts.",
+    "menuThemeMinimalist": "Minimalista",
+    "menuThemeClassic": "Clássico Fine Dining",
+    "menuThemeDark": "Escuro e Marcante",
+    "menuThemeVisual": "Grade Visual",
+    "visualizer": "Abrir visualizador",
     "saveSettings": "Salvar Configurações",
     "billingBadge": "Cobrança",
     "billingTitle": "Plano e cobrança",
@@ -124,6 +132,8 @@
     "notFound": "Menu não encontrado",
     "ogDescription": "Veja o menu digital de {{name}}.",
     "outOfStock": "Indisponível",
+    "scanAndOrder": "Escaneie e peça",
+    "poweredByPrefix": "Desenvolvido por",
     "closeImage": "Fechar visualização da imagem",
     "imagePreviewAlt": "Pré-visualização em tamanho real",
     "poweredBy": "Desenvolvido por MenuQR"

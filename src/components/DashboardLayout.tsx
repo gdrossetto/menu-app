@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { LayoutDashboard, Menu, QrCode, Settings, LogOut, Menu as MenuIcon, X } from 'lucide-react'
+import { LayoutDashboard, Menu, QrCode, Settings, LogOut, Menu as MenuIcon, X, Eye } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
@@ -14,12 +14,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { t, i18n } = useTranslation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [restaurantId, setRestaurantId] = useState<string | null>(
+    localStorage.getItem('menuqr_restaurant_id'),
+  )
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768)
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setRestaurantId(localStorage.getItem('menuqr_restaurant_id'))
+    }
+
+    window.addEventListener('storage', handleStorage)
+    handleStorage()
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [location.pathname])
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false)
 
@@ -97,6 +110,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Settings size={18} />
             {t('dashboard.settings', 'Settings')}
           </Link>
+          {restaurantId ? (
+            <a
+              href={`/m/${restaurantId}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={closeMobileMenu}
+              className={navLinkClass(false)}
+            >
+              <Eye size={18} />
+              {t('dashboard.viewMyMenu', 'View my menu')}
+            </a>
+          ) : null}
         </nav>
 
         <div className={`flex flex-col gap-4 p-6 ${isMobile ? 'border-t border-app-border' : ''}`}>

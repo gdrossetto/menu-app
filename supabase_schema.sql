@@ -15,6 +15,7 @@ create table public.restaurants (
     logo_url text,
     primary_color text default '#000000',
     currency_symbol text default '$',
+    menu_theme text default 'minimalist' check (menu_theme in ('minimalist', 'classic', 'dark', 'visual')),
     plan_tier text not null default 'free' check (plan_tier in ('free', 'pro')),
     stripe_customer_id text unique,
     stripe_subscription_id text unique,

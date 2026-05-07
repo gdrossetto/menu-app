@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { ArrowRight, CreditCard, Save, Sparkles, Upload } from "lucide-react";
+import {
+  ArrowRight,
+  CreditCard,
+  Eye,
+  Palette,
+  Save,
+  Sparkles,
+  Upload,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
@@ -15,7 +23,14 @@ import {
 import { supabase } from "../lib/supabase";
 import { fetchRestaurantByOwner } from "../lib/menuData";
 import { uploadMenuImage } from "../lib/imageUpload";
-import type { Restaurant } from "../types/menu";
+import type { MenuTheme, Restaurant } from "../types/menu";
+
+const menuThemeOptions: Array<{ value: MenuTheme; labelKey: string; fallback: string }> = [
+  { value: "minimalist", labelKey: "settings.menuThemeMinimalist", fallback: "Minimalist" },
+  { value: "classic", labelKey: "settings.menuThemeClassic", fallback: "Classic Fine Dining" },
+  { value: "dark", labelKey: "settings.menuThemeDark", fallback: "Dark & Bold" },
+  { value: "visual", labelKey: "settings.menuThemeVisual", fallback: "Visual Grid" },
+];
 
 export default function Settings() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -29,6 +44,7 @@ export default function Settings() {
   const [primaryColor, setPrimaryColor] = useState("#000000");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [restaurantName, setRestaurantName] = useState("");
+  const [menuTheme, setMenuTheme] = useState<MenuTheme>("minimalist");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,6 +60,7 @@ export default function Settings() {
         setCurrencySymbol(data.currency_symbol || "$");
         setPrimaryColor(data.primary_color || "#000000");
         setRestaurantName(data.name || "");
+        setMenuTheme((data.menu_theme as MenuTheme | null) || "minimalist");
       }
     }
     setLoading(false);
@@ -115,6 +132,7 @@ export default function Settings() {
         currency_symbol: currencySymbol,
         primary_color: primaryColor,
         logo_url: logoUrl,
+        menu_theme: menuTheme,
       })
       .eq("id", restaurant.id);
 
@@ -130,6 +148,7 @@ export default function Settings() {
         currency_symbol: currencySymbol,
         primary_color: primaryColor,
         logo_url: logoUrl,
+        menu_theme: menuTheme,
       });
     }
     setSaving(false);
@@ -152,6 +171,8 @@ export default function Settings() {
       </DashboardLayout>
     );
   }
+
+  const menuPreviewUrl = `/m/${restaurant.id}?previewTheme=${menuTheme}`;
 
   return (
     <DashboardLayout>
@@ -284,6 +305,44 @@ export default function Settings() {
                   <option value="₹">₹ (INR)</option>
                   <option value="Fr">Fr (CHF)</option>
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  {t("settings.menuTheme", "Menu Layout")}
+                </label>
+                <p className="app-help-text mb-2">
+                  {t(
+                    "settings.menuThemeDescription",
+                    "Choose the template used on your public menu. Preview it before saving if you want to compare layouts.",
+                  )}
+                </p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                  <div className="relative flex-1">
+                    <Palette className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-app-text-muted" />
+                    <select
+                      value={menuTheme}
+                      onChange={(e) => setMenuTheme(e.target.value as MenuTheme)}
+                      className="form-input w-full pl-10"
+                    >
+                      {menuThemeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {t(option.labelKey, option.fallback)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-outline w-full sm:w-auto"
+                    onClick={() => {
+                      window.open(menuPreviewUrl, "_blank", "noopener,noreferrer");
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                    {t("settings.visualizer", "Open visualizer")}
+                  </button>
+                </div>
               </div>
 
               <div className="border-t border-app-border pt-4">

@@ -18,6 +18,7 @@ export interface Database {
           logo_url: string | null;
           primary_color: string | null;
           currency_symbol: string | null;
+          menu_theme: string | null;
           plan_tier: string;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
@@ -33,6 +34,7 @@ export interface Database {
           logo_url?: string | null;
           primary_color?: string | null;
           currency_symbol?: string | null;
+          menu_theme?: string | null;
           plan_tier?: string;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
@@ -48,6 +50,7 @@ export interface Database {
           logo_url?: string | null;
           primary_color?: string | null;
           currency_symbol?: string | null;
+          menu_theme?: string | null;
           plan_tier?: string;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;

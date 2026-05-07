@@ -4,6 +4,7 @@ export type Restaurant = Database["public"]["Tables"]["restaurants"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 export type MenuView = Database["public"]["Tables"]["menu_views"]["Row"];
+export type MenuTheme = "minimalist" | "classic" | "dark" | "visual";
 
 export type RestaurantPlanTier = "free" | "pro";
 export type StripeSubscriptionStatus =

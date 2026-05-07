@@ -22,7 +22,8 @@
     "totalViews": "total views",
     "quickActions": "Quick Actions",
     "updateCategories": "Update your categories and items. Changes are saved automatically.",
-    "editMenuItems": "Edit Menu Items"
+    "editMenuItems": "Edit Menu Items",
+    "viewMyMenu": "View my menu"
   },
   "editMenu": {
     "title": "Edit Menu",
@@ -96,6 +97,13 @@
     "brandColorDescription": "Choose a primary color for your menu to match your brand.",
     "currencySymbol": "Currency Symbol",
     "currencyDescription": "This symbol will be displayed next to prices on your public menu.",
+    "menuTheme": "Menu Layout",
+    "menuThemeDescription": "Choose the template used on your public menu. Preview it before saving if you want to compare layouts.",
+    "menuThemeMinimalist": "Minimalist",
+    "menuThemeClassic": "Classic Fine Dining",
+    "menuThemeDark": "Dark & Bold",
+    "menuThemeVisual": "Visual Grid",
+    "visualizer": "Open visualizer",
     "saveSettings": "Save Settings",
     "billingBadge": "Billing",
     "billingTitle": "Plan & billing",
@@ -124,6 +132,8 @@
     "notFound": "Menu not found",
     "ogDescription": "View the digital menu for {{name}}.",
     "outOfStock": "Out of stock",
+    "scanAndOrder": "Scan & Order",
+    "poweredByPrefix": "Powered by",
     "closeImage": "Close image preview",
     "imagePreviewAlt": "Full size preview",
     "poweredBy": "Powered by MenuQR"
