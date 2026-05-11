@@ -1,6 +1,7 @@
 import { Edit2, EyeOff, GripVertical, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useTranslation } from "react-i18next";
 import type { MenuItem } from "../types/menu";
 
 interface SortableMenuItemProps {
@@ -16,6 +17,7 @@ export default function SortableMenuItem({
   onDelete,
   onEdit,
 }: SortableMenuItemProps) {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -63,7 +65,7 @@ export default function SortableMenuItem({
             <p className="text-base font-medium">{item.name}</p>
             {!item.is_available && (
               <span className="flex items-center gap-1 rounded-[0.5rem] bg-app-surface-hover px-1.5 py-0.5 text-[0.75rem] font-semibold text-app-text-muted">
-                <EyeOff size={12} /> Hidden
+                <EyeOff size={12} /> {t("editMenu.hidden", "Hidden")}
               </span>
             )}
           </div>
@@ -80,14 +82,24 @@ export default function SortableMenuItem({
           {item.price.toFixed(2)}
         </span>
         <button
+          type="button"
           onClick={() => onEdit(item)}
           className="btn btn-ghost p-[0.4rem] text-app-text-muted"
+          aria-label={t("editMenu.editItemAction", {
+            defaultValue: "Edit {{name}}",
+            name: item.name,
+          })}
         >
           <Edit2 size={16} />
         </button>
         <button
+          type="button"
           onClick={() => onDelete(item.id)}
           className="btn btn-ghost p-[0.4rem] text-app-danger"
+          aria-label={t("editMenu.deleteItemAction", {
+            defaultValue: "Delete {{name}}",
+            name: item.name,
+          })}
         >
           <Trash2 size={16} />
         </button>

@@ -26,7 +26,10 @@
     "viewMyMenu": "Ver meu menu",
     "restaurantCreated": "Restaurante criado",
     "restaurantCreatedDescription": "Seu painel está pronto. Você já pode começar a adicionar itens ao menu.",
-    "createRestaurantError": "Não foi possível criar o restaurante"
+    "createRestaurantError": "Não foi possível criar o restaurante",
+    "loadError": "Não foi possível carregar o painel",
+    "qrDownloadError": "Não foi possível salvar o QR code",
+    "analyticsTimeframe": "Período das análises"
   },
   "editMenu": {
     "title": "Editar Menu",
@@ -112,7 +115,13 @@
     "deleteCategoryDescription": "Isso também apagará todos os itens desta categoria.",
     "deleteItemTitle": "Apagar item?",
     "deleteItemDescription": "Este item será removido do seu menu.",
-    "deleteConfirm": "Apagar"
+    "deleteConfirm": "Apagar",
+    "editItemAction": "Editar {{name}}",
+    "deleteItemAction": "Apagar {{name}}",
+    "deleteCategoryAction": "Apagar categoria {{name}}",
+    "closeImport": "Fechar modal de importação",
+    "removeImportCategory": "Remover {{name}} da importação",
+    "removeImportItem": "Remover {{name}} da importação"
   },
   "settings": {
     "title": "Configurações",
@@ -160,7 +169,8 @@
     "billingPortalFailed": "Não foi possível abrir a cobrança",
     "billingPortalError": "Não conseguimos abrir o portal de cobrança agora.",
     "billingCheckoutFailed": "Não foi possível iniciar o checkout",
-    "billingCheckoutError": "Não conseguimos iniciar o checkout agora."
+    "billingCheckoutError": "Não conseguimos iniciar o checkout agora.",
+    "logoPreviewAlt": "Pré-visualização do logo"
   },
   "publicMenu": {
     "loading": "Carregando o menu...",
@@ -174,7 +184,23 @@
     "poweredByPrefix": "Desenvolvido por",
     "closeImage": "Fechar visualização da imagem",
     "imagePreviewAlt": "Pré-visualização em tamanho real",
+    "openItemImage": "Abrir imagem de {{name}}",
     "poweredBy": "Desenvolvido por MenuQR"
+  },
+  "login": {
+    "accountCreated": "Conta criada",
+    "accountCreatedDescription": "Verifique seu email para acessar o link de login. Se a confirmação por email estiver desativada, você já pode entrar.",
+    "authFallbackError": "Ocorreu um erro durante a autenticação",
+    "authFailed": "Falha na autenticação",
+    "createAccountSubtitle": "Crie sua conta",
+    "signInSubtitle": "Entre para gerenciar seu menu",
+    "email": "Email",
+    "password": "Senha",
+    "processing": "Processando...",
+    "createAccount": "Criar conta",
+    "signIn": "Entrar",
+    "haveAccount": "Já tem uma conta? Entrar",
+    "needAccount": "Precisa de uma conta? Cadastre-se"
   },
   "common": {
     "language": "Idioma",

@@ -51,9 +51,22 @@ interface ImportRequestBody {
   fileData?: string;
 }
 
+const SUPPORTED_MENU_IMPORT_MIME_TYPES = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+const MAX_IMPORT_FILE_BYTES = 8 * 1024 * 1024;
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (request.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed." }, 405);
   }
 
   try {
@@ -77,11 +90,26 @@ Deno.serve(async (request) => {
       throw new Error("Missing OPENAI_API_KEY environment variable.");
     }
 
-    const { fileName, mimeType, fileData } = (await request.json()) as ImportRequestBody;
+    const { fileName, mimeType, fileData } = (await request.json().catch(() => ({}))) as ImportRequestBody;
 
     if (!fileName || !mimeType || !fileData) {
       return jsonResponse(
-        { error: "Missing fileName, mimeType, or fileData." },
+        { error: "Missing request: fileName, mimeType, or fileData." },
+        400,
+      );
+    }
+
+    if (!SUPPORTED_MENU_IMPORT_MIME_TYPES.has(mimeType)) {
+      return jsonResponse(
+        { error: "Invalid request: unsupported file type." },
+        400,
+      );
+    }
+
+    const approximateFileBytes = Math.ceil((fileData.length * 3) / 4);
+    if (approximateFileBytes > MAX_IMPORT_FILE_BYTES) {
+      return jsonResponse(
+        { error: "Invalid request: file is too large." },
         400,
       );
     }

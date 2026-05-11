@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { QrCode } from 'lucide-react'
 import { useToast } from '../components/toastContext'
@@ -8,6 +9,8 @@ import { getErrorMessage, logger } from '../lib/logger'
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { t } = useTranslation()
   const toast = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -15,21 +18,28 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null)
   const [isSignUp, setIsSignUp] = useState(false)
 
+  const fromLocation = (location.state as {
+    from?: { pathname?: string; search?: string };
+  } | null)?.from;
+  const redirectPath = fromLocation?.pathname
+    ? `${fromLocation.pathname}${fromLocation.search ?? ""}`
+    : '/dashboard'
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate('/dashboard')
+        navigate(redirectPath)
       }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        navigate('/dashboard')
+        navigate(redirectPath)
       }
     })
 
     return () => subscription.unsubscribe()
-  }, [navigate])
+  }, [navigate, redirectPath])
 
   const handleAuth = async (e: FormEvent) => {
     e.preventDefault()
@@ -44,8 +54,11 @@ export default function Login() {
         })
         if (error) throw error
         toast.success(
-          'Account created',
-          'Check your email for the login link. If email confirmation is disabled, you can log in now.',
+          t('login.accountCreated', 'Account created'),
+          t(
+            'login.accountCreatedDescription',
+            'Check your email for the login link. If email confirmation is disabled, you can log in now.',
+          ),
         )
         setIsSignUp(false)
       } else {
@@ -58,14 +71,14 @@ export default function Login() {
     } catch (err: unknown) {
       const message = getErrorMessage(
         err,
-        'An error occurred during authentication',
+        t('login.authFallbackError', 'An error occurred during authentication'),
       )
       logger.error('Authentication flow failed.', err, {
         mode: isSignUp ? 'sign_up' : 'sign_in',
         email,
       })
       setError(message)
-      toast.error('Authentication failed', message)
+      toast.error(t('login.authFailed', 'Authentication failed'), message)
     } finally {
       setLoading(false)
     }
@@ -80,7 +93,9 @@ export default function Login() {
           </div>
           <h1 className="m-0 text-[1.75rem] font-bold tracking-[-0.02em] text-app-primary">MenuQR</h1>
           <p className="mt-2 text-[0.95rem] text-app-text-muted">
-            {isSignUp ? 'Create your account' : 'Sign in to manage your menu'}
+            {isSignUp
+              ? t('login.createAccountSubtitle', 'Create your account')
+              : t('login.signInSubtitle', 'Sign in to manage your menu')}
           </p>
         </div>
         
@@ -92,30 +107,41 @@ export default function Login() {
 
         <form onSubmit={handleAuth} className="flex flex-col gap-5">
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label htmlFor="email" className="form-label">
+              {t('login.email', 'Email')}
+            </label>
             <input 
+              id="email"
               type="email" 
               className="form-input" 
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
+              autoComplete="email"
               placeholder="you@restaurant.com"
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label htmlFor="password" className="form-label">
+              {t('login.password', 'Password')}
+            </label>
             <input 
+              id="password"
               type="password" 
               className="form-input" 
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
+              minLength={6}
+              autoComplete={isSignUp ? 'new-password' : 'current-password'}
               placeholder="••••••••"
             />
           </div>
 
           <button type="submit" className="btn btn-primary mt-2.5 w-full py-3" disabled={loading}>
-            {loading ? 'Processing...' : (isSignUp ? 'Create Account' : 'Sign In')}
+            {loading
+              ? t('login.processing', 'Processing...')
+              : (isSignUp ? t('login.createAccount', 'Create Account') : t('login.signIn', 'Sign In'))}
           </button>
         </form>
 
@@ -125,7 +151,9 @@ export default function Login() {
             onClick={() => { setIsSignUp(!isSignUp); setError(null); }} 
             className="btn btn-ghost"
           >
-            {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
+            {isSignUp
+              ? t('login.haveAccount', 'Already have an account? Sign In')
+              : t('login.needAccount', 'Need an account? Sign Up')}
           </button>
         </div>
       </div>

@@ -20,8 +20,23 @@ export function getSafeErrorResponse(
 ): { status: number; message: string } {
   const message = error instanceof Error ? error.message : "";
 
-  if (message === "Unauthorized.") {
+  if (message === "Unauthorized." || message === "Missing authorization header.") {
     return { status: 401, message };
+  }
+
+  if (message === "Restaurant not found.") {
+    return { status: 404, message };
+  }
+
+  if (message === "Method not allowed.") {
+    return { status: 405, message };
+  }
+
+  if (
+    message.startsWith("Invalid request:") ||
+    message.startsWith("Missing request:")
+  ) {
+    return { status: 400, message };
   }
 
   return { status: 500, message: fallbackMessage };

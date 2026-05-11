@@ -119,6 +119,7 @@ export default function MenuImportModal({
             onClick={onClose}
             className="app-icon-button"
             disabled={isAnalyzing || isImporting}
+            aria-label={t("editMenu.closeImport", "Close import modal")}
           >
             <X size={18} />
           </button>
@@ -291,6 +292,10 @@ export default function MenuImportModal({
                       <button
                         type="button"
                         className="btn btn-ghost btn-danger p-[0.45rem]"
+                        aria-label={t("editMenu.removeImportCategory", {
+                          defaultValue: "Remove {{name}} from import",
+                          name: category.name || t("editMenu.importCategoryName", "Category name"),
+                        })}
                         onClick={() =>
                           setProposal((current) =>
                             current
@@ -381,6 +386,10 @@ export default function MenuImportModal({
                           <button
                             type="button"
                             className="btn btn-ghost px-[0.55rem] py-[0.7rem]"
+                            aria-label={t("editMenu.removeImportItem", {
+                              defaultValue: "Remove {{name}} from import",
+                              name: item.name || t("editMenu.itemName", "Item Name"),
+                            })}
                             onClick={() =>
                               setProposal((current) =>
                                 current

@@ -24,6 +24,9 @@ create table public.restaurants (
     subscription_current_period_end timestamp with time zone
 );
 
+-- The app currently treats one authenticated account as one restaurant owner.
+create unique index restaurants_owner_id_unique on public.restaurants(owner_id);
+
 -- Categories Table
 create table public.categories (
     id uuid default uuid_generate_v4() primary key,
@@ -158,12 +161,49 @@ using ( bucket_id = 'menu-images' );
 -- Allow authenticated users to upload images
 create policy "Allow authenticated uploads" 
 on storage.objects for insert 
-with check ( bucket_id = 'menu-images' and auth.role() = 'authenticated' );
+with check (
+    bucket_id = 'menu-images'
+    and auth.role() = 'authenticated'
+    and exists (
+        select 1
+        from public.restaurants r
+        where r.id::text = (storage.foldername(name))[1]
+        and r.owner_id = auth.uid()
+    )
+);
 
 create policy "Allow authenticated updates" 
 on storage.objects for update 
-using ( bucket_id = 'menu-images' and auth.role() = 'authenticated' );
+using (
+    bucket_id = 'menu-images'
+    and auth.role() = 'authenticated'
+    and exists (
+        select 1
+        from public.restaurants r
+        where r.id::text = (storage.foldername(name))[1]
+        and r.owner_id = auth.uid()
+    )
+)
+with check (
+    bucket_id = 'menu-images'
+    and auth.role() = 'authenticated'
+    and exists (
+        select 1
+        from public.restaurants r
+        where r.id::text = (storage.foldername(name))[1]
+        and r.owner_id = auth.uid()
+    )
+);
 
 create policy "Allow authenticated deletes" 
 on storage.objects for delete 
-using ( bucket_id = 'menu-images' and auth.role() = 'authenticated' );
+using (
+    bucket_id = 'menu-images'
+    and auth.role() = 'authenticated'
+    and exists (
+        select 1
+        from public.restaurants r
+        where r.id::text = (storage.foldername(name))[1]
+        and r.owner_id = auth.uid()
+    )
+);

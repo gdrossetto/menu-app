@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { ExternalLink, Printer, Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useToast } from "../components/toastContext";
@@ -25,58 +26,67 @@ export default function Dashboard() {
   );
 
   const checkSession = useCallback(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (session) {
-      setUserId(session.user.id);
-      const data = await fetchRestaurantByOwner(session.user.id);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        setUserId(session.user.id);
+        const data = await fetchRestaurantByOwner(session.user.id);
 
-      if (data) {
-        setRestaurant(data);
-        localStorage.setItem("menuqr_restaurant_id", data.id);
+        if (data) {
+          setRestaurant(data);
+          localStorage.setItem("menuqr_restaurant_id", data.id);
 
-        // Fetch views for analytics
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          // Fetch views for analytics
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        const { data: views, error: viewsError } = await supabase
-          .from("menu_views")
-          .select("viewed_at")
-          .eq("restaurant_id", data.id)
-          .gte("viewed_at", thirtyDaysAgo.toISOString());
+          const { data: views, error: viewsError } = await supabase
+            .from("menu_views")
+            .select("viewed_at")
+            .eq("restaurant_id", data.id)
+            .gte("viewed_at", thirtyDaysAgo.toISOString());
 
-        if (viewsError) {
-          logger.error("Failed to load menu analytics.", viewsError, {
-            restaurantId: data.id,
-          });
-        }
-
-        if (views) {
-          // Aggregate by day
-          const counts: Record<string, number> = {};
-          // Initialize last 30 days with 0
-          for (let i = 29; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            counts[d.toISOString().split("T")[0]] = 0;
+          if (viewsError) {
+            logger.error("Failed to load menu analytics.", viewsError, {
+              restaurantId: data.id,
+            });
           }
 
-          views.forEach((v) => {
-            const dateStr = v.viewed_at.split("T")[0];
-            if (counts[dateStr] !== undefined) counts[dateStr]++;
-          });
+          if (views) {
+            // Aggregate by day
+            const counts: Record<string, number> = {};
+            // Initialize last 30 days with 0
+            for (let i = 29; i >= 0; i--) {
+              const d = new Date();
+              d.setDate(d.getDate() - i);
+              counts[d.toISOString().split("T")[0]] = 0;
+            }
 
-          setChartData(
-            Object.entries(counts).map(([date, count]) => ({ date, count })),
-          );
+            views.forEach((v) => {
+              const dateStr = v.viewed_at.split("T")[0];
+              if (counts[dateStr] !== undefined) counts[dateStr]++;
+            });
+
+            setChartData(
+              Object.entries(counts).map(([date, count]) => ({ date, count })),
+            );
+          }
+        } else {
+          localStorage.removeItem("menuqr_restaurant_id");
         }
-      } else {
-        localStorage.removeItem("menuqr_restaurant_id");
       }
+    } catch (error) {
+      logger.error("Failed to initialize dashboard.", error);
+      toast.error(
+        t("dashboard.loadError", "Could not load dashboard"),
+        t("common.tryAgain", "Please try again. If it keeps failing, contact support."),
+      );
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, []);
+  }, [t, toast]);
 
   useEffect(() => {
     void Promise.resolve().then(checkSession);
@@ -174,8 +184,18 @@ export default function Dashboard() {
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
+    } else {
+      logger.error("QR canvas was not available for download.", undefined, {
+        restaurantId: restaurant.id,
+      });
+      toast.error(
+        t("dashboard.qrDownloadError", "Could not save QR code"),
+        t("common.tryAgain", "Please try again. If it keeps failing, contact support."),
+      );
     }
   };
+
+  const totalViews = filteredChartData.reduce((acc, curr) => acc + curr.count, 0);
 
   return (
     <DashboardLayout>
@@ -245,6 +265,7 @@ export default function Dashboard() {
                     {t("dashboard.menuViews", "Menu Views")}
                   </h3>
                   <select
+                    aria-label={t("dashboard.analyticsTimeframe", "Analytics timeframe")}
                     value={timeframe}
                     onChange={(e) => setTimeframe(e.target.value as "7" | "30")}
                     className="app-inline-select bg-white"
@@ -259,7 +280,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex h-[150px] items-end gap-1 border-b border-app-border pb-2">
-                  {filteredChartData.length === 0 ? (
+                  {filteredChartData.length === 0 || totalViews === 0 ? (
                     <div className="flex h-full w-full items-center justify-center text-[0.9rem] text-app-text-muted">
                       {t(
                         "dashboard.noViewsYet",
@@ -316,7 +337,7 @@ export default function Dashboard() {
                   )}
                 </div>
                 <div className="mt-4 text-center text-[1.2rem] font-semibold text-app-primary">
-                  {filteredChartData.reduce((acc, curr) => acc + curr.count, 0)}{" "}
+                  {totalViews}{" "}
                   <span className="text-[0.9rem] font-normal text-app-text-muted">
                     {t("dashboard.totalViews", "total views")}
                   </span>
@@ -335,12 +356,12 @@ export default function Dashboard() {
                     "Update your categories and items. Changes are saved automatically.",
                   )}
                 </p>
-                <a
-                  href="/dashboard/menu"
+                <Link
+                  to="/dashboard/menu"
                   className="btn btn-primary w-full"
                 >
                   {t("dashboard.editMenuItems", "Edit Menu Items")}
-                </a>
+                </Link>
               </div>
             </div>
           </div>

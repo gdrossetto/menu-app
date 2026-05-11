@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
   ArrowRight,
@@ -50,6 +50,20 @@ export default function Settings() {
   const [menuTheme, setMenuTheme] = useState<MenuTheme>("minimalist");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const logoPreviewUrl = useMemo(() => {
+    if (logoFile) {
+      return URL.createObjectURL(logoFile);
+    }
+
+    return restaurant?.logo_url ?? null;
+  }, [logoFile, restaurant?.logo_url]);
+
+  useEffect(() => {
+    if (!logoFile || !logoPreviewUrl) return;
+
+    return () => URL.revokeObjectURL(logoPreviewUrl);
+  }, [logoFile, logoPreviewUrl]);
 
   const fetchRestaurant = useCallback(async () => {
     const {
@@ -254,20 +268,17 @@ export default function Settings() {
                   )}
                 </p>
                 <div className="mt-2 flex items-center gap-4">
-                  {logoFile || restaurant.logo_url ? (
+                  {logoPreviewUrl ? (
                     <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[0.5rem] border border-app-border bg-white">
                       <img
-                        src={
-                          logoFile
-                            ? URL.createObjectURL(logoFile)
-                            : restaurant.logo_url!
-                        }
-                        alt="Logo Preview"
+                        src={logoPreviewUrl}
+                        alt={t("settings.logoPreviewAlt", "Logo preview")}
                         className="max-h-full max-w-full object-contain"
                       />
                     </div>
                   ) : null}
-                  <div
+                  <button
+                    type="button"
                     className="app-upload-trigger flex-1"
                     onClick={() => fileInputRef.current?.click()}
                   >
@@ -279,18 +290,19 @@ export default function Settings() {
                           ? t("editMenu.replaceImage", "Replace Image")
                           : t("editMenu.uploadImage", "Upload Image")}
                     </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={fileInputRef}
-                      className="hidden"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          setLogoFile(e.target.files[0]);
-                        }
-                      }}
-                    />
-                  </div>
+                  </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    className="hidden"
+                    aria-label={t("settings.restaurantLogo", "Restaurant Logo")}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setLogoFile(e.target.files[0]);
+                      }
+                    }}
+                  />
                 </div>
               </div>
 

@@ -24,6 +24,10 @@ function ToastIcon({ tone }: { tone: ToastTone }) {
   return <Info className={className} />;
 }
 
+function createToastId() {
+  return globalThis.crypto?.randomUUID?.() ?? `toast-${Date.now()}-${Math.random()}`;
+}
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -38,7 +42,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       tone = "info",
       durationMs = tone === "error" ? 7000 : 4500,
     }: ToastInput) => {
-      const id = crypto.randomUUID();
+      const id = createToastId();
       setToasts((current) => [
         ...current.slice(-3),
         { id, title, description, tone, durationMs },
@@ -66,7 +70,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div
-        aria-live="polite"
+        aria-live={toasts.some((toast) => toast.tone === "error") ? "assertive" : "polite"}
         aria-atomic="true"
         className="fixed right-4 bottom-4 z-[200] flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3 sm:right-6 sm:bottom-6"
       >

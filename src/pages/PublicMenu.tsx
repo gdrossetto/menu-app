@@ -36,7 +36,7 @@ interface TemplateProps {
   scrollToCategory: (id: string) => void;
   changeLanguage: (language: string) => void;
   openImage: (url: string) => void;
-  t: (key: string, defaultValue?: string) => string;
+  t: (key: string, options?: string | Record<string, unknown>) => string;
 }
 
 interface LanguageSwitcherProps {
@@ -178,6 +178,10 @@ function MinimalistTemplate({
                     <button
                       type="button"
                       onClick={() => openImage(item.image_url!)}
+                      aria-label={t("publicMenu.openItemImage", {
+                        defaultValue: "Open image for {{name}}",
+                        name: item.name,
+                      })}
                       className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-100/50 bg-slate-100 shadow-sm sm:h-20 sm:w-20"
                     >
                       <img
@@ -302,6 +306,10 @@ function ClassicTemplate({
                     <button
                       type="button"
                       onClick={() => openImage(item.image_url!)}
+                      aria-label={t("publicMenu.openItemImage", {
+                        defaultValue: "Open image for {{name}}",
+                        name: item.name,
+                      })}
                       className="mt-1 h-14 w-14 shrink-0 overflow-hidden rounded-full border border-stone-200"
                     >
                       <img
@@ -443,6 +451,10 @@ function DarkTemplate({
                     <button
                       type="button"
                       onClick={() => openImage(item.image_url!)}
+                      aria-label={t("publicMenu.openItemImage", {
+                        defaultValue: "Open image for {{name}}",
+                        name: item.name,
+                      })}
                       className="w-20 h-20 shrink-0 border border-zinc-700 bg-zinc-800 p-1"
                     >
                       <img
@@ -575,6 +587,10 @@ function VisualTemplate({
                     <button
                       type="button"
                       onClick={() => openImage(item.image_url!)}
+                      aria-label={t("publicMenu.openItemImage", {
+                        defaultValue: "Open image for {{name}}",
+                        name: item.name,
+                      })}
                       className="h-40 w-full bg-gray-100"
                     >
                       <img
@@ -661,7 +677,7 @@ export default function PublicMenu() {
   const visibleCategories = useMemo(
     () =>
       categories.filter((category) =>
-        items.some((item) => item.category_id === category.id),
+        items.some((item) => item.category_id === category.id && item.is_available),
       ),
     [categories, items],
   );
@@ -671,7 +687,7 @@ export default function PublicMenu() {
     for (const category of visibleCategories) {
       map.set(
         category.id,
-        items.filter((item) => item.category_id === category.id),
+        items.filter((item) => item.category_id === category.id && item.is_available),
       );
     }
     return map;
@@ -801,12 +817,25 @@ export default function PublicMenu() {
   if (!visibleCategories.length) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] px-6 py-16 text-center">
-        <h1 className="mb-3 text-3xl font-bold text-slate-900">
-          {restaurant.name}
-        </h1>
-        <p className="text-slate-500">
-          {t("publicMenu.empty", "Menu is empty.")}
-        </p>
+        <div className="mx-auto flex max-w-md flex-col items-center">
+          <div className="mb-5 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-slate-200/50 bg-black text-white shadow-xl shadow-black/10">
+            {restaurant.logo_url ? (
+              <img
+                src={restaurant.logo_url}
+                alt={restaurant.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <ImageIcon className="h-8 w-8 opacity-50" />
+            )}
+          </div>
+          <h1 className="mb-3 text-3xl font-bold text-slate-900">
+            {restaurant.name}
+          </h1>
+          <p className="text-slate-500">
+            {t("publicMenu.empty", "Menu is empty.")}
+          </p>
+        </div>
       </div>
     );
   }
@@ -824,7 +853,8 @@ export default function PublicMenu() {
         scrollToCategory,
         changeLanguage: (language) => i18n.changeLanguage(language),
         openImage: setSelectedImage,
-        t: (key, defaultValue) => t(key, defaultValue ?? ""),
+        t: (key, options) =>
+          typeof options === "string" ? t(key, options) : t(key, options ?? {}),
       })}
 
       {selectedImage ? (

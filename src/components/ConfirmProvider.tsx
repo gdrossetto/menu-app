@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -33,12 +34,29 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({ confirm }), [confirm]);
 
+  useEffect(() => {
+    if (!state) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        close(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [close, state]);
+
   return (
     <ConfirmContext.Provider value={value}>
       {children}
       {state ? (
         <div className="modal-overlay px-4" onClick={() => close(false)}>
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={`confirm-title-${state.id}`}
+            aria-describedby={state.description ? `confirm-description-${state.id}` : undefined}
             className="w-full max-w-md rounded-[1.25rem] bg-app-surface p-6 shadow-app-lg"
             onClick={(event) => event.stopPropagation()}
           >
@@ -54,10 +72,15 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-app-text">
+                  <span id={`confirm-title-${state.id}`}>
                   {state.title}
+                  </span>
                 </h2>
                 {state.description ? (
-                  <p className="mt-1 text-[0.92rem] text-app-text-muted">
+                  <p
+                    id={`confirm-description-${state.id}`}
+                    className="mt-1 text-[0.92rem] text-app-text-muted"
+                  >
                     {state.description}
                   </p>
                 ) : null}

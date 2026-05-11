@@ -14,6 +14,10 @@ Deno.serve(async (request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  if (request.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed." }, 405);
+  }
+
   try {
     const user = await requireAuthenticatedUser(request);
     const restaurant = await getRestaurantForOwner(user.id);

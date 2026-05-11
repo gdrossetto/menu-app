@@ -68,8 +68,13 @@ export default function SortableCategory({
           {category.name}
         </h2>
         <button
+          type="button"
           onClick={() => onDeleteCategory(category.id)}
           className="btn btn-ghost btn-danger p-[0.4rem]"
+          aria-label={t("editMenu.deleteCategoryAction", {
+            defaultValue: "Delete {{name}} category",
+            name: category.name,
+          })}
         >
           <Trash2 size={16} />
         </button>

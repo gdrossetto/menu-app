@@ -26,7 +26,10 @@
     "viewMyMenu": "View my menu",
     "restaurantCreated": "Restaurant created",
     "restaurantCreatedDescription": "Your dashboard is ready. You can start adding menu items now.",
-    "createRestaurantError": "Could not create restaurant"
+    "createRestaurantError": "Could not create restaurant",
+    "loadError": "Could not load dashboard",
+    "qrDownloadError": "Could not save QR code",
+    "analyticsTimeframe": "Analytics timeframe"
   },
   "editMenu": {
     "title": "Edit Menu",
@@ -112,7 +115,13 @@
     "deleteCategoryDescription": "This will also delete every item in this category.",
     "deleteItemTitle": "Delete item?",
     "deleteItemDescription": "This item will be removed from your menu.",
-    "deleteConfirm": "Delete"
+    "deleteConfirm": "Delete",
+    "editItemAction": "Edit {{name}}",
+    "deleteItemAction": "Delete {{name}}",
+    "deleteCategoryAction": "Delete {{name}} category",
+    "closeImport": "Close import modal",
+    "removeImportCategory": "Remove {{name}} from import",
+    "removeImportItem": "Remove {{name}} from import"
   },
   "settings": {
     "title": "Settings",
@@ -160,7 +169,8 @@
     "billingPortalFailed": "Could not open billing",
     "billingPortalError": "We could not open the billing portal right now.",
     "billingCheckoutFailed": "Could not start checkout",
-    "billingCheckoutError": "We could not start checkout right now."
+    "billingCheckoutError": "We could not start checkout right now.",
+    "logoPreviewAlt": "Logo preview"
   },
   "publicMenu": {
     "loading": "Loading menu...",
@@ -174,7 +184,23 @@
     "poweredByPrefix": "Powered by",
     "closeImage": "Close image preview",
     "imagePreviewAlt": "Full size preview",
+    "openItemImage": "Open image for {{name}}",
     "poweredBy": "Powered by MenuQR"
+  },
+  "login": {
+    "accountCreated": "Account created",
+    "accountCreatedDescription": "Check your email for the login link. If email confirmation is disabled, you can log in now.",
+    "authFallbackError": "An error occurred during authentication",
+    "authFailed": "Authentication failed",
+    "createAccountSubtitle": "Create your account",
+    "signInSubtitle": "Sign in to manage your menu",
+    "email": "Email",
+    "password": "Password",
+    "processing": "Processing...",
+    "createAccount": "Create Account",
+    "signIn": "Sign In",
+    "haveAccount": "Already have an account? Sign In",
+    "needAccount": "Need an account? Sign Up"
   },
   "common": {
     "language": "Language",
