@@ -344,8 +344,8 @@ const ThemePreviewer = () => {
           </div>
 
           <div className="relative flex justify-center">
-            <div className="absolute top-1/2 left-1/2 -z-10 h-[400px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-500/20 blur-[100px]" />
-            <div className="h-[650px] w-[320px] overflow-hidden rounded-[2.5rem] border-[8px] border-black bg-white shadow-2xl transition-all duration-500">
+            <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-500/20 blur-[100px]" />
+            <div className="h-[760px] w-[380px] overflow-hidden rounded-[3rem] border-[8px] border-black bg-white shadow-2xl transition-all duration-500">
               <iframe
                 src={`/m/${demoRestaurantId}?previewTheme=${activeTheme}`}
                 className="h-full w-full border-none bg-app-surface"
