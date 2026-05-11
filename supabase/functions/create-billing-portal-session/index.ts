@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
 import { getRestaurantForOwner, getStripeClient } from "../_shared/billing.ts";
 import { requireAuthenticatedUser } from "../_shared/supabase.ts";
+import { getSafeErrorResponse, logFunctionError } from "../_shared/logging.ts";
 
 interface PortalRequestBody {
   returnPath?: string;
@@ -37,8 +38,11 @@ Deno.serve(async (request) => {
 
     return jsonResponse({ url: session.url });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to create billing portal session.";
-    const status = message === "Unauthorized." ? 401 : 500;
+    logFunctionError("create-billing-portal-session", error);
+    const { status, message } = getSafeErrorResponse(
+      error,
+      "Unable to create billing portal session.",
+    );
     return jsonResponse({ error: message }, status);
   }
 });

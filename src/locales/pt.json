@@ -23,7 +23,10 @@
     "quickActions": "Ações Rápidas",
     "updateCategories": "Atualize suas categorias e itens. As alterações são salvas automaticamente.",
     "editMenuItems": "Editar Itens do Menu",
-    "viewMyMenu": "Ver meu menu"
+    "viewMyMenu": "Ver meu menu",
+    "restaurantCreated": "Restaurante criado",
+    "restaurantCreatedDescription": "Seu painel está pronto. Você já pode começar a adicionar itens ao menu.",
+    "createRestaurantError": "Não foi possível criar o restaurante"
   },
   "editMenu": {
     "title": "Editar Menu",
@@ -84,7 +87,32 @@
     "importWarnings": "Avisos para revisar",
     "importCategoryName": "Nome da categoria",
     "importSaving": "Importando...",
-    "importConfirm": "Importar itens revisados"
+    "importConfirm": "Importar itens revisados",
+    "loadError": "Não foi possível carregar o menu",
+    "imageUploadError": "Falha ao enviar imagem",
+    "imageUploadErrorDescription": "Tente outra imagem ou verifique se o bucket menu-images existe.",
+    "categoryAdded": "Categoria adicionada",
+    "categoryAddedDescription": "Sua categoria está pronta para receber itens.",
+    "categoryAddError": "Não foi possível adicionar a categoria",
+    "categoryDeleted": "Categoria apagada",
+    "categoryDeleteError": "Não foi possível apagar a categoria",
+    "categoryOrderError": "Não foi possível salvar a ordem das categorias",
+    "itemOrderError": "Não foi possível salvar a ordem dos itens",
+    "revertingChanges": "Revertemos a ordem para manter seu menu consistente.",
+    "itemAdded": "Item adicionado",
+    "itemAddError": "Não foi possível adicionar o item",
+    "itemDeleted": "Item apagado",
+    "itemDeleteError": "Não foi possível apagar o item",
+    "itemUpdated": "Item atualizado",
+    "itemUpdateError": "Não foi possível atualizar o item",
+    "importSuccess": "Importação concluída",
+    "importSuccessDescription": "Os itens revisados foram adicionados ao menu.",
+    "importError": "Falha na importação",
+    "deleteCategoryTitle": "Apagar categoria?",
+    "deleteCategoryDescription": "Isso também apagará todos os itens desta categoria.",
+    "deleteItemTitle": "Apagar item?",
+    "deleteItemDescription": "Este item será removido do seu menu.",
+    "deleteConfirm": "Apagar"
   },
   "settings": {
     "title": "Configurações",
@@ -105,6 +133,11 @@
     "menuThemeVisual": "Grade Visual",
     "visualizer": "Abrir visualizador",
     "saveSettings": "Salvar Configurações",
+    "logoUploadError": "Falha ao enviar logo",
+    "logoUploadErrorDescription": "Suas configurações não foram salvas. Tente outra imagem ou verifique a configuração do storage.",
+    "saveError": "As configurações não foram salvas",
+    "saveSuccess": "Configurações salvas",
+    "saveSuccessDescription": "As configurações do seu menu público foram atualizadas.",
     "billingBadge": "Cobrança",
     "billingTitle": "Plano e cobrança",
     "billingSubtitleFree": "Faça upgrade quando quiser desbloquear a importação com IA. Todo o restante do editor continua gratuito.",
@@ -118,10 +151,15 @@
     "aiImportFeatureLocked": "Bloqueado no plano Grátis. Faça upgrade para o Professional para importar fotos e PDFs com IA.",
     "syncBilling": "Sincronizar cobrança agora",
     "syncingBilling": "Sincronizando cobrança...",
+    "billingSyncSuccess": "Cobrança sincronizada",
+    "billingSyncSuccessDescription": "O status do seu plano foi atualizado.",
+    "billingSyncFailed": "Falha ao sincronizar cobrança",
     "manageBilling": "Gerenciar cobrança",
     "upgradePlan": "Fazer upgrade para Professional",
     "billingSyncError": "Não conseguimos sincronizar seu status de cobrança agora.",
+    "billingPortalFailed": "Não foi possível abrir a cobrança",
     "billingPortalError": "Não conseguimos abrir o portal de cobrança agora.",
+    "billingCheckoutFailed": "Não foi possível iniciar o checkout",
     "billingCheckoutError": "Não conseguimos iniciar o checkout agora."
   },
   "publicMenu": {
@@ -141,7 +179,8 @@
   "common": {
     "language": "Idioma",
     "english": "English",
-    "portuguese": "Português"
+    "portuguese": "Português",
+    "tryAgain": "Tente novamente. Se continuar falhando, entre em contato com o suporte."
   },
   "landing": {
     "nav": {

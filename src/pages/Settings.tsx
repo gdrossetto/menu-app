@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { useToast } from "../components/toastContext";
 import {
   getPlanLabel,
   hasAiImportAccess,
@@ -23,6 +24,7 @@ import {
 import { supabase } from "../lib/supabase";
 import { fetchRestaurantByOwner } from "../lib/menuData";
 import { uploadMenuImage } from "../lib/imageUpload";
+import { getErrorMessage, logger } from "../lib/logger";
 import type { MenuTheme, Restaurant } from "../types/menu";
 
 const menuThemeOptions: Array<{ value: MenuTheme; labelKey: string; fallback: string }> = [
@@ -38,6 +40,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
   const { t } = useTranslation();
+  const toast = useToast();
   const location = useLocation();
 
   const [currencySymbol, setCurrencySymbol] = useState("$");
@@ -85,7 +88,10 @@ export default function Settings() {
           await fetchRestaurant();
         }
       } catch (error) {
-        console.error("Error syncing billing status:", error);
+        logger.error("Failed to sync billing after checkout redirect.", error, {
+          restaurantId: restaurant.id,
+          stripeCustomerId: restaurant.stripe_customer_id,
+        });
       } finally {
         if (active) {
           setBillingLoading(false);
@@ -107,7 +113,12 @@ export default function Settings() {
     });
 
     if (!publicUrl) {
-      alert("Failed to upload logo.");
+      logger.error("Logo upload returned no public URL.", undefined, {
+        restaurantId: restaurant.id,
+        fileName: rawFile.name,
+        fileType: rawFile.type,
+        fileSize: rawFile.size,
+      });
     }
 
     return publicUrl;
@@ -122,7 +133,18 @@ export default function Settings() {
     let logoUrl = restaurant.logo_url;
     if (logoFile) {
       const uploadedUrl = await uploadImage(logoFile);
-      if (uploadedUrl) logoUrl = uploadedUrl;
+      if (!uploadedUrl) {
+        toast.error(
+          t("settings.logoUploadError", "Logo upload failed"),
+          t(
+            "settings.logoUploadErrorDescription",
+            "Your settings were not saved. Please try another image or check your storage setup.",
+          ),
+        );
+        setSaving(false);
+        return;
+      }
+      logoUrl = uploadedUrl;
     }
 
     const { error } = await supabase
@@ -137,9 +159,22 @@ export default function Settings() {
       .eq("id", restaurant.id);
 
     if (error) {
-      alert("Error saving settings: " + error.message);
+      logger.error("Failed to save restaurant settings.", error, {
+        restaurantId: restaurant.id,
+        menuTheme,
+      });
+      toast.error(
+        t("settings.saveError", "Settings were not saved"),
+        error.message,
+      );
     } else {
-      alert("Settings saved successfully!");
+      toast.success(
+        t("settings.saveSuccess", "Settings saved"),
+        t(
+          "settings.saveSuccessDescription",
+          "Your public menu settings are up to date.",
+        ),
+      );
       setLogoFile(null);
       // Update local state
       setRestaurant({
@@ -321,6 +356,7 @@ export default function Settings() {
                   <div className="relative flex-1">
                     <Palette className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-app-text-muted" />
                     <select
+                      aria-label={t("settings.menuTheme", "Menu Layout")}
                       value={menuTheme}
                       onChange={(e) => setMenuTheme(e.target.value as MenuTheme)}
                       className="form-input w-full pl-10"
@@ -447,15 +483,26 @@ export default function Settings() {
                     setBillingLoading(true);
                     await syncBillingStatus();
                     await fetchRestaurant();
-                  } catch (error) {
-                    alert(
-                      error instanceof Error
-                        ? error.message
-                        : t(
-                            "settings.billingSyncError",
-                            "We could not sync your billing status right now.",
-                          ),
+                    toast.success(
+                      t("settings.billingSyncSuccess", "Billing synced"),
+                      t(
+                        "settings.billingSyncSuccessDescription",
+                        "Your plan status has been refreshed.",
+                      ),
                     );
+                  } catch (error) {
+                    const message = getErrorMessage(
+                      error,
+                      t(
+                        "settings.billingSyncError",
+                        "We could not sync your billing status right now.",
+                      ),
+                    );
+                    logger.error("Manual billing sync failed.", error, {
+                      restaurantId: restaurant.id,
+                      stripeCustomerId: restaurant.stripe_customer_id,
+                    });
+                    toast.error(t("settings.billingSyncFailed", "Billing sync failed"), message);
                   } finally {
                     setBillingLoading(false);
                   }
@@ -477,14 +524,18 @@ export default function Settings() {
                       setBillingLoading(true);
                       await openBillingPortal("/dashboard/settings");
                     } catch (error) {
-                      alert(
-                        error instanceof Error
-                          ? error.message
-                          : t(
-                              "settings.billingPortalError",
-                              "We could not open the billing portal right now.",
-                            ),
+                      const message = getErrorMessage(
+                        error,
+                        t(
+                          "settings.billingPortalError",
+                          "We could not open the billing portal right now.",
+                        ),
                       );
+                      logger.error("Failed to open billing portal.", error, {
+                        restaurantId: restaurant.id,
+                        stripeCustomerId: restaurant.stripe_customer_id,
+                      });
+                      toast.error(t("settings.billingPortalFailed", "Could not open billing"), message);
                     } finally {
                       setBillingLoading(false);
                     }
@@ -503,14 +554,18 @@ export default function Settings() {
                       setBillingLoading(true);
                       await startAiImportCheckout("/dashboard/settings");
                     } catch (error) {
-                      alert(
-                        error instanceof Error
-                          ? error.message
-                          : t(
-                              "settings.billingCheckoutError",
-                              "We could not start checkout right now.",
-                            ),
+                      const message = getErrorMessage(
+                        error,
+                        t(
+                          "settings.billingCheckoutError",
+                          "We could not start checkout right now.",
+                        ),
                       );
+                      logger.error("Failed to start checkout from settings.", error, {
+                        restaurantId: restaurant.id,
+                        planTier: restaurant.plan_tier,
+                      });
+                      toast.error(t("settings.billingCheckoutFailed", "Could not start checkout"), message);
                     } finally {
                       setBillingLoading(false);
                     }

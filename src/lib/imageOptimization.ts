@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 export async function compressImage(file: File, maxWidth = 1200, quality = 0.8): Promise<File> {
   return new Promise((resolve) => {
     // Check if the file is already a lightweight format or not an image
@@ -53,13 +55,21 @@ export async function compressImage(file: File, maxWidth = 1200, quality = 0.8):
       };
 
       img.onerror = (err) => {
-        console.error("Image loading error", err);
+        logger.error("Image optimization failed while loading image.", err, {
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+        });
         resolve(file); // fallback to original file if parsing fails
       };
     };
 
     reader.onerror = (err) => {
-      console.error("File reading error", err);
+      logger.error("Image optimization failed while reading file.", err, {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+      });
       resolve(file);
     };
   });

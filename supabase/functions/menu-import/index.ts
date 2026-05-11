@@ -5,6 +5,7 @@ import {
   hasAiImportEntitlement,
 } from "../_shared/billing.ts";
 import { requireAuthenticatedUser } from "../_shared/supabase.ts";
+import { getSafeErrorResponse, logFunctionError } from "../_shared/logging.ts";
 
 const menuImportSchema = {
   type: "object",
@@ -135,8 +136,12 @@ Deno.serve(async (request) => {
     const parsed = JSON.parse(outputText);
     return jsonResponse(parsed);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown import error.";
-    return jsonResponse({ error: message }, 500);
+    logFunctionError("menu-import", error);
+    const { status, message } = getSafeErrorResponse(
+      error,
+      "The import failed. Please try again.",
+    );
+    return jsonResponse({ error: message }, status);
   }
 });
 

@@ -6,6 +6,7 @@ import {
   hasAiImportEntitlement,
 } from "../_shared/billing.ts";
 import { createAdminClient, requireAuthenticatedUser } from "../_shared/supabase.ts";
+import { getSafeErrorResponse, logFunctionError } from "../_shared/logging.ts";
 
 interface CheckoutRequestBody {
   successPath?: string;
@@ -82,8 +83,11 @@ Deno.serve(async (request) => {
 
     return jsonResponse({ url: session.url });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to create checkout session.";
-    const status = message === "Unauthorized." ? 401 : 500;
+    logFunctionError("create-checkout-session", error);
+    const { status, message } = getSafeErrorResponse(
+      error,
+      "Unable to create checkout session.",
+    );
     return jsonResponse({ error: message }, status);
   }
 });

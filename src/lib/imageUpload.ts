@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { compressImage } from "./imageOptimization";
+import { logger } from "./logger";
 
 export async function uploadMenuImage(
   rawFile: File,
@@ -19,7 +20,12 @@ export async function uploadMenuImage(
     .upload(filePath, file);
 
   if (error) {
-    console.error("Error uploading image:", error);
+    logger.error("Failed to upload menu image.", error, {
+      restaurantId,
+      filePath,
+      fileType: file.type,
+      fileSize: file.size,
+    });
     return null;
   }
 

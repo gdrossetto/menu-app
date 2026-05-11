@@ -7,6 +7,8 @@ import DashboardLayout from "../components/DashboardLayout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import MenuImportModal from "../components/MenuImportModal";
 import SortableCategory from "../components/SortableCategory";
+import { useConfirm } from "../components/confirmContext";
+import { useToast } from "../components/toastContext";
 import {
   hasAiImportAccess,
   startAiImportCheckout,
@@ -15,6 +17,7 @@ import {
 import { supabase } from "../lib/supabase";
 import { fetchMenuData as fetchRestaurantMenuData, sortItemsForCategory } from "../lib/menuData";
 import { uploadMenuImage } from "../lib/imageUpload";
+import { getErrorMessage, logger } from "../lib/logger";
 import type {
   Category,
   MenuImportDraftCategory,
@@ -49,6 +52,8 @@ export default function EditMenu() {
   const [isImportingMenu, setIsImportingMenu] = useState(false);
   const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false);
   const { t } = useTranslation();
+  const toast = useToast();
+  const requestConfirmation = useConfirm();
   const location = useLocation();
   const restaurantId = localStorage.getItem("menuqr_restaurant_id");
   const hasExistingMenuItems = items.length > 0;
@@ -90,10 +95,14 @@ export default function EditMenu() {
       setCategories(data.categories);
       setItems(data.items);
     } catch (error) {
-      console.error("Error fetching menu data:", error);
+      logger.error("Failed to load menu editor data.", error, { restaurantId });
+      toast.error(
+        t("editMenu.loadError", "Could not load menu"),
+        t("common.tryAgain", "Please try again. If it keeps failing, contact support."),
+      );
     }
     setLoading(false);
-  }, [restaurantId]);
+  }, [restaurantId, t, toast]);
 
   useEffect(() => {
     void Promise.resolve().then(loadMenuData);
@@ -114,7 +123,10 @@ export default function EditMenu() {
           await loadMenuData();
         }
       } catch (error) {
-        console.error("Error syncing billing status:", error);
+        logger.error("Failed to sync billing after menu checkout redirect.", error, {
+          restaurantId: restaurant.id,
+          stripeCustomerId: restaurant.stripe_customer_id,
+        });
       } finally {
         if (active) {
           setIsRedirectingToCheckout(false);
@@ -132,8 +144,18 @@ export default function EditMenu() {
     const publicUrl = await uploadMenuImage(rawFile, restaurantId);
 
     if (!publicUrl) {
-      alert(
-        "Failed to upload image. Please make sure you ran the SQL to create the storage bucket.",
+      logger.error("Menu image upload returned no public URL.", undefined, {
+        restaurantId,
+        fileName: rawFile.name,
+        fileType: rawFile.type,
+        fileSize: rawFile.size,
+      });
+      toast.error(
+        t("editMenu.imageUploadError", "Image upload failed"),
+        t(
+          "editMenu.imageUploadErrorDescription",
+          "Please try another image or check that the menu-images storage bucket exists.",
+        ),
       );
     }
 
@@ -144,7 +166,7 @@ export default function EditMenu() {
     e.preventDefault();
     if (!newCategoryName.trim() || !restaurantId) return;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("categories")
       .insert([
         {
@@ -159,14 +181,47 @@ export default function EditMenu() {
     if (data) {
       setCategories([...categories, data]);
       setNewCategoryName("");
+      toast.success(
+        t("editMenu.categoryAdded", "Category added"),
+        t("editMenu.categoryAddedDescription", "Your category is ready for items."),
+      );
+    } else {
+      logger.error("Failed to add category.", error, {
+        restaurantId,
+        categoryName: newCategoryName,
+      });
+      toast.error(
+        t("editMenu.categoryAddError", "Could not add category"),
+        error?.message ?? t("common.tryAgain", "Please try again."),
+      );
     }
   };
 
   const deleteCategory = async (id: string) => {
-    if (!confirm("Delete this category and all its items?")) return;
-    await supabase.from("categories").delete().eq("id", id);
+    const shouldDelete = await requestConfirmation({
+      title: t("editMenu.deleteCategoryTitle", "Delete category?"),
+      description: t(
+        "editMenu.deleteCategoryDescription",
+        "This will also delete every item in this category.",
+      ),
+      confirmLabel: t("editMenu.deleteConfirm", "Delete"),
+      cancelLabel: t("editMenu.cancel", "Cancel"),
+      tone: "danger",
+    });
+
+    if (!shouldDelete) return;
+
+    const { error } = await supabase.from("categories").delete().eq("id", id);
+
+    if (error) {
+      logger.error("Failed to delete category.", error, { restaurantId, categoryId: id });
+      toast.error(t("editMenu.categoryDeleteError", "Could not delete category"), error.message);
+      return;
+    }
+
     setCategories(categories.filter((c) => c.id !== id));
     setItems(items.filter((i) => i.category_id !== id));
+    toast.success(t("editMenu.categoryDeleted", "Category deleted"));
   };
 
   const handleCategoryDragEnd = async (event: DragEndEvent) => {
@@ -197,8 +252,11 @@ export default function EditMenu() {
     );
 
     if (error) {
-      console.error("Error updating order:", error);
-      alert("Failed to save the new order. Reverting changes.");
+      logger.error("Failed to update category order.", error, { restaurantId });
+      toast.error(
+        t("editMenu.categoryOrderError", "Could not save category order"),
+        t("editMenu.revertingChanges", "We reverted the order so your menu stays consistent."),
+      );
       void loadMenuData();
     }
   };
@@ -241,8 +299,11 @@ export default function EditMenu() {
     );
 
     if (error) {
-      console.error("Error updating item order:", error);
-      alert("Failed to save the item order. Reverting changes.");
+      logger.error("Failed to update item order.", error, { restaurantId, categoryId });
+      toast.error(
+        t("editMenu.itemOrderError", "Could not save item order"),
+        t("editMenu.revertingChanges", "We reverted the order so your menu stays consistent."),
+      );
       void loadMenuData();
     }
   };
@@ -255,7 +316,11 @@ export default function EditMenu() {
     let imageUrl = newItem.image_url;
     if (newItemImageFile) {
       const uploadedUrl = await uploadImage(newItemImageFile);
-      if (uploadedUrl) imageUrl = uploadedUrl;
+      if (!uploadedUrl) {
+        setUploading(false);
+        return;
+      }
+      imageUrl = uploadedUrl;
     }
 
     const { data, error } = await supabase
@@ -286,16 +351,43 @@ export default function EditMenu() {
       });
       setNewItemImageFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      toast.success(t("editMenu.itemAdded", "Item added"));
     } else {
-      console.error(error);
+      logger.error("Failed to add menu item.", error, {
+        restaurantId,
+        categoryId: newItem.category_id,
+        itemName: newItem.name,
+      });
+      toast.error(
+        t("editMenu.itemAddError", "Could not add item"),
+        error?.message ?? t("common.tryAgain", "Please try again."),
+      );
     }
     setUploading(false);
   };
 
   const deleteItem = async (id: string) => {
-    if (!confirm("Delete this item?")) return;
-    await supabase.from("menu_items").delete().eq("id", id);
+    const shouldDelete = await requestConfirmation({
+      title: t("editMenu.deleteItemTitle", "Delete item?"),
+      description: t(
+        "editMenu.deleteItemDescription",
+        "This item will be removed from your menu.",
+      ),
+      confirmLabel: t("editMenu.deleteConfirm", "Delete"),
+      cancelLabel: t("editMenu.cancel", "Cancel"),
+      tone: "danger",
+    });
+
+    if (!shouldDelete) return;
+
+    const { error } = await supabase.from("menu_items").delete().eq("id", id);
+    if (error) {
+      logger.error("Failed to delete menu item.", error, { restaurantId, itemId: id });
+      toast.error(t("editMenu.itemDeleteError", "Could not delete item"), error.message);
+      return;
+    }
     setItems(items.filter((i) => i.id !== id));
+    toast.success(t("editMenu.itemDeleted", "Item deleted"));
   };
 
   const updateItem = async (e: FormEvent) => {
@@ -306,7 +398,11 @@ export default function EditMenu() {
     let imageUrl = editingItem.image_url;
     if (editingItemImageFile) {
       const uploadedUrl = await uploadImage(editingItemImageFile);
-      if (uploadedUrl) imageUrl = uploadedUrl;
+      if (!uploadedUrl) {
+        setUploading(false);
+        return;
+      }
+      imageUrl = uploadedUrl;
     }
 
     const { data, error } = await supabase
@@ -316,7 +412,7 @@ export default function EditMenu() {
         description: editingItem.description,
         price: editingItem.price,
         image_url: imageUrl || null,
-        is_available: editingItem.is_available
+        is_available: editingItem.is_available,
       })
       .eq("id", editingItem.id)
       .select()
@@ -326,8 +422,16 @@ export default function EditMenu() {
       setItems(items.map((i) => (i.id === editingItem.id ? data : i)));
       setEditingItem(null);
       setEditingItemImageFile(null);
+      toast.success(t("editMenu.itemUpdated", "Item updated"));
     } else {
-      console.error(error);
+      logger.error("Failed to update menu item.", error, {
+        restaurantId,
+        itemId: editingItem.id,
+      });
+      toast.error(
+        t("editMenu.itemUpdateError", "Could not update item"),
+        error?.message ?? t("common.tryAgain", "Please try again."),
+      );
     }
     setUploading(false);
   };
@@ -391,13 +495,17 @@ export default function EditMenu() {
       setCategories([...categories, ...createdCategories]);
       setItems([...items, ...createdItems]);
       setIsImportModalOpen(false);
-    } catch (error) {
-      console.error("Error importing menu draft:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : t("editMenu.importUnexpectedError", "The import failed. Please try again."),
+      toast.success(
+        t("editMenu.importSuccess", "Import complete"),
+        t("editMenu.importSuccessDescription", "Your reviewed items were added to the menu."),
       );
+    } catch (error) {
+      const message = getErrorMessage(
+        error,
+        t("editMenu.importUnexpectedError", "The import failed. Please try again."),
+      );
+      logger.error("Failed to import reviewed menu draft.", error, { restaurantId });
+      toast.error(t("editMenu.importError", "Import failed"), message);
     } finally {
       setIsImportingMenu(false);
     }
@@ -494,14 +602,18 @@ export default function EditMenu() {
                       setIsRedirectingToCheckout(true);
                       await startAiImportCheckout("/dashboard/menu");
                     } catch (error) {
-                      alert(
-                        error instanceof Error
-                          ? error.message
-                          : t(
-                              "editMenu.importUpgradeError",
-                              "We could not start checkout right now.",
-                            ),
+                      const message = getErrorMessage(
+                        error,
+                        t(
+                          "editMenu.importUpgradeError",
+                          "We could not start checkout right now.",
+                        ),
                       );
+                      logger.error("Failed to start checkout from menu editor.", error, {
+                        restaurantId,
+                        planTier: restaurant?.plan_tier,
+                      });
+                      toast.error(t("settings.billingCheckoutFailed", "Could not start checkout"), message);
                     } finally {
                       setIsRedirectingToCheckout(false);
                     }
@@ -575,6 +687,7 @@ export default function EditMenu() {
                 className="grid grid-cols-1 gap-4 md:grid-cols-2"
               >
                 <select
+                  aria-label={t("editMenu.selectCategory", "Select Category...")}
                   className="form-input"
                   value={newItem.category_id}
                   onChange={(e) =>

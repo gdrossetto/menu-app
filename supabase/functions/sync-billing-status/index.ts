@@ -7,6 +7,7 @@ import {
   syncRestaurantSubscription,
 } from "../_shared/billing.ts";
 import { requireAuthenticatedUser } from "../_shared/supabase.ts";
+import { getSafeErrorResponse, logFunctionError } from "../_shared/logging.ts";
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
@@ -62,8 +63,11 @@ Deno.serve(async (request) => {
       stripe_subscription_id: primarySubscription.id,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to sync billing status.";
-    const status = message === "Unauthorized." ? 401 : 500;
+    logFunctionError("sync-billing-status", error);
+    const { status, message } = getSafeErrorResponse(
+      error,
+      "Unable to sync billing status.",
+    );
     return jsonResponse({ error: message }, status);
   }
 });

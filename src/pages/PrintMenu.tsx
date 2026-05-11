@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchMenuData } from "../lib/menuData";
+import { logger } from "../lib/logger";
 import type { Category, MenuItem, Restaurant } from "../types/menu";
 
 export default function PrintMenu() {
@@ -32,7 +33,7 @@ export default function PrintMenu() {
         window.print();
       }, 500);
     } catch (menuError) {
-      console.error("Error loading printable menu:", menuError);
+      logger.error("Failed to load printable menu.", menuError, { restaurantId });
       setError("Restaurant not found.");
       setLoading(false);
     }

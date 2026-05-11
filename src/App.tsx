@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import {
   BrowserRouter as Router,
@@ -7,15 +7,24 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
-import EditMenu from "./pages/EditMenu";
-import PublicMenu from "./pages/PublicMenu";
-import Login from "./pages/Login";
-import Settings from "./pages/Settings";
-import PrintMenu from "./pages/PrintMenu";
-import LandingPage from "./pages/LandingPage";
 import { supabase } from "./lib/supabase";
 import type { Session } from "@supabase/supabase-js";
+
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const EditMenu = lazy(() => import("./pages/EditMenu"));
+const PublicMenu = lazy(() => import("./pages/PublicMenu"));
+const Login = lazy(() => import("./pages/Login"));
+const Settings = lazy(() => import("./pages/Settings"));
+const PrintMenu = lazy(() => import("./pages/PrintMenu"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+
+function RouteFallback() {
+  return (
+    <div className="app-screen-center">
+      <div className="app-spinner" />
+    </div>
+  );
+}
 
 function RequireAuth({ children }: { children: ReactElement }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -56,40 +65,42 @@ function RequireAuth({ children }: { children: ReactElement }) {
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
 
-        {/* Protected Dashboard Routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <RequireAuth>
-              <Dashboard />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/dashboard/menu"
-          element={
-            <RequireAuth>
-              <EditMenu />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/dashboard/settings"
-          element={
-            <RequireAuth>
-              <Settings />
-            </RequireAuth>
-          }
-        />
+          {/* Protected Dashboard Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <RequireAuth>
+                <Dashboard />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/menu"
+            element={
+              <RequireAuth>
+                <EditMenu />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/settings"
+            element={
+              <RequireAuth>
+                <Settings />
+              </RequireAuth>
+            }
+          />
 
-        {/* Public Routes */}
-        <Route path="/m/:restaurantId" element={<PublicMenu />} />
-        <Route path="/m/:restaurantId/print" element={<PrintMenu />} />
-      </Routes>
+          {/* Public Routes */}
+          <Route path="/m/:restaurantId" element={<PublicMenu />} />
+          <Route path="/m/:restaurantId/print" element={<PrintMenu />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

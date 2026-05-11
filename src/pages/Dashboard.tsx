@@ -5,8 +5,10 @@ import { ExternalLink, Printer, Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../components/DashboardLayout";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { useToast } from "../components/toastContext";
 import { supabase } from "../lib/supabase";
 import { fetchRestaurantByOwner } from "../lib/menuData";
+import { logger } from "../lib/logger";
 import type { Restaurant } from "../types/menu";
 
 export default function Dashboard() {
@@ -15,6 +17,7 @@ export default function Dashboard() {
   const [newRestaurantName, setNewRestaurantName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const { t } = useTranslation();
+  const toast = useToast();
 
   const [timeframe, setTimeframe] = useState<"7" | "30">("7");
   const [chartData, setChartData] = useState<{ date: string; count: number }[]>(
@@ -37,11 +40,17 @@ export default function Dashboard() {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        const { data: views } = await supabase
+        const { data: views, error: viewsError } = await supabase
           .from("menu_views")
           .select("viewed_at")
           .eq("restaurant_id", data.id)
           .gte("viewed_at", thirtyDaysAgo.toISOString());
+
+        if (viewsError) {
+          logger.error("Failed to load menu analytics.", viewsError, {
+            restaurantId: data.id,
+          });
+        }
 
         if (views) {
           // Aggregate by day
@@ -87,8 +96,23 @@ export default function Dashboard() {
     if (data) {
       localStorage.setItem("menuqr_restaurant_id", data.id);
       setRestaurant(data);
+      toast.success(
+        t("dashboard.restaurantCreated", "Restaurant created"),
+        t(
+          "dashboard.restaurantCreatedDescription",
+          "Your dashboard is ready. You can start adding menu items now.",
+        ),
+      );
     } else {
-      alert("Error creating restaurant: " + error?.message);
+      logger.error("Failed to create restaurant.", error, {
+        userId,
+        restaurantName: newRestaurantName,
+      });
+      toast.error(
+        t("dashboard.createRestaurantError", "Could not create restaurant"),
+        error?.message ??
+          t("common.tryAgain", "Please try again. If it keeps failing, contact support."),
+      );
     }
     setLoading(false);
   };

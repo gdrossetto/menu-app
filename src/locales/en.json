@@ -23,7 +23,10 @@
     "quickActions": "Quick Actions",
     "updateCategories": "Update your categories and items. Changes are saved automatically.",
     "editMenuItems": "Edit Menu Items",
-    "viewMyMenu": "View my menu"
+    "viewMyMenu": "View my menu",
+    "restaurantCreated": "Restaurant created",
+    "restaurantCreatedDescription": "Your dashboard is ready. You can start adding menu items now.",
+    "createRestaurantError": "Could not create restaurant"
   },
   "editMenu": {
     "title": "Edit Menu",
@@ -84,7 +87,32 @@
     "importWarnings": "Warnings to review",
     "importCategoryName": "Category name",
     "importSaving": "Importing...",
-    "importConfirm": "Import reviewed items"
+    "importConfirm": "Import reviewed items",
+    "loadError": "Could not load menu",
+    "imageUploadError": "Image upload failed",
+    "imageUploadErrorDescription": "Please try another image or check that the menu-images storage bucket exists.",
+    "categoryAdded": "Category added",
+    "categoryAddedDescription": "Your category is ready for items.",
+    "categoryAddError": "Could not add category",
+    "categoryDeleted": "Category deleted",
+    "categoryDeleteError": "Could not delete category",
+    "categoryOrderError": "Could not save category order",
+    "itemOrderError": "Could not save item order",
+    "revertingChanges": "We reverted the order so your menu stays consistent.",
+    "itemAdded": "Item added",
+    "itemAddError": "Could not add item",
+    "itemDeleted": "Item deleted",
+    "itemDeleteError": "Could not delete item",
+    "itemUpdated": "Item updated",
+    "itemUpdateError": "Could not update item",
+    "importSuccess": "Import complete",
+    "importSuccessDescription": "Your reviewed items were added to the menu.",
+    "importError": "Import failed",
+    "deleteCategoryTitle": "Delete category?",
+    "deleteCategoryDescription": "This will also delete every item in this category.",
+    "deleteItemTitle": "Delete item?",
+    "deleteItemDescription": "This item will be removed from your menu.",
+    "deleteConfirm": "Delete"
   },
   "settings": {
     "title": "Settings",
@@ -105,6 +133,11 @@
     "menuThemeVisual": "Visual Grid",
     "visualizer": "Open visualizer",
     "saveSettings": "Save Settings",
+    "logoUploadError": "Logo upload failed",
+    "logoUploadErrorDescription": "Your settings were not saved. Please try another image or check your storage setup.",
+    "saveError": "Settings were not saved",
+    "saveSuccess": "Settings saved",
+    "saveSuccessDescription": "Your public menu settings are up to date.",
     "billingBadge": "Billing",
     "billingTitle": "Plan & billing",
     "billingSubtitleFree": "Upgrade when you want to unlock AI menu import. Everything else in the menu builder stays free.",
@@ -118,10 +151,15 @@
     "aiImportFeatureLocked": "Locked on the Free plan. Upgrade to Professional to import photos and PDFs with AI.",
     "syncBilling": "Sync billing now",
     "syncingBilling": "Syncing billing...",
+    "billingSyncSuccess": "Billing synced",
+    "billingSyncSuccessDescription": "Your plan status has been refreshed.",
+    "billingSyncFailed": "Billing sync failed",
     "manageBilling": "Manage billing",
     "upgradePlan": "Upgrade to Professional",
     "billingSyncError": "We could not sync your billing status right now.",
+    "billingPortalFailed": "Could not open billing",
     "billingPortalError": "We could not open the billing portal right now.",
+    "billingCheckoutFailed": "Could not start checkout",
     "billingCheckoutError": "We could not start checkout right now."
   },
   "publicMenu": {
@@ -141,7 +179,8 @@
   "common": {
     "language": "Language",
     "english": "English",
-    "portuguese": "Português"
+    "portuguese": "Português",
+    "tryAgain": "Please try again. If it keeps failing, contact support."
   },
   "landing": {
     "nav": {

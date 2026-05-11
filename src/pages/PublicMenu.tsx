@@ -10,6 +10,7 @@ import {
 import LoadingSpinner from "../components/LoadingSpinner";
 import { supabase } from "../lib/supabase";
 import { fetchMenuData } from "../lib/menuData";
+import { logger } from "../lib/logger";
 import type { Category, MenuItem, MenuTheme, Restaurant } from "../types/menu";
 
 function setMetaTag(property: string, content: string) {
@@ -693,10 +694,19 @@ export default function PublicMenu() {
       const sessionKey = `viewed_${rest.id}`;
       if (!sessionStorage.getItem(sessionKey)) {
         sessionStorage.setItem(sessionKey, "true");
-        void supabase.from("menu_views").insert({ restaurant_id: rest.id });
+        void supabase
+          .from("menu_views")
+          .insert({ restaurant_id: rest.id })
+          .then(({ error: viewError }) => {
+            if (viewError) {
+              logger.error("Failed to record public menu view.", viewError, {
+                restaurantId: rest.id,
+              });
+            }
+          });
       }
     } catch (menuError) {
-      console.error("Error loading public menu:", menuError);
+      logger.error("Failed to load public menu.", menuError, { restaurantId });
       setError("notFound");
     } finally {
       setLoading(false);

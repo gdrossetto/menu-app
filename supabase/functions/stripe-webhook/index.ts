@@ -6,6 +6,7 @@ import {
   stringifyId,
   syncRestaurantSubscription,
 } from "../_shared/billing.ts";
+import { logFunctionError } from "../_shared/logging.ts";
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
@@ -36,8 +37,8 @@ Deno.serve(async (request) => {
 
     return jsonResponse({ received: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Webhook error.";
-    return jsonResponse({ error: message }, 400);
+    logFunctionError("stripe-webhook", error);
+    return jsonResponse({ error: "Webhook error." }, 400);
   }
 });
 

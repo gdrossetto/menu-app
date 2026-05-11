@@ -16,6 +16,7 @@ import {
   updateImportCategory,
   updateImportItem,
 } from "../lib/menuImport";
+import { getErrorMessage, logger } from "../lib/logger";
 import type { MenuImportProposal } from "../types/menu";
 
 interface MenuImportModalProps {
@@ -65,14 +66,19 @@ export default function MenuImportModal({
         );
       }
     } catch (analysisError) {
-      setError(
-        analysisError instanceof Error
-          ? analysisError.message
-          : t(
-              "editMenu.importUnexpectedError",
-              "The import failed. Please try again.",
-            ),
+      const message = getErrorMessage(
+        analysisError,
+        t(
+          "editMenu.importUnexpectedError",
+          "The import failed. Please try again.",
+        ),
       );
+      logger.error("AI menu import analysis failed.", analysisError, {
+        fileName: selectedFile.name,
+        fileType: selectedFile.type,
+        fileSize: selectedFile.size,
+      });
+      setError(message);
     } finally {
       setIsAnalyzing(false);
     }

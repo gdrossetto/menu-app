@@ -3,9 +3,12 @@ import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { QrCode } from 'lucide-react'
+import { useToast } from '../components/toastContext'
+import { getErrorMessage, logger } from '../lib/logger'
 
 export default function Login() {
   const navigate = useNavigate()
+  const toast = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -40,7 +43,10 @@ export default function Login() {
           password,
         })
         if (error) throw error
-        alert('Check your email for the login link! Or if email confirmation is disabled, you can log in now.')
+        toast.success(
+          'Account created',
+          'Check your email for the login link. If email confirmation is disabled, you can log in now.',
+        )
         setIsSignUp(false)
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -50,7 +56,16 @@ export default function Login() {
         if (error) throw error
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred during authentication')
+      const message = getErrorMessage(
+        err,
+        'An error occurred during authentication',
+      )
+      logger.error('Authentication flow failed.', err, {
+        mode: isSignUp ? 'sign_up' : 'sign_in',
+        email,
+      })
+      setError(message)
+      toast.error('Authentication failed', message)
     } finally {
       setLoading(false)
     }

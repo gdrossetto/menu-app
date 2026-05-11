@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { logger } from "./logger";
 import type { Category, MenuData, MenuItem, Restaurant } from "../types/menu";
 
 export async function fetchRestaurantByOwner(
@@ -12,7 +13,7 @@ export async function fetchRestaurantByOwner(
     .maybeSingle();
 
   if (error) {
-    console.error("Error fetching restaurant:", error);
+    logger.error("Failed to fetch restaurant by owner.", error, { ownerId });
     return null;
   }
 
