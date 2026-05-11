@@ -7,10 +7,11 @@ import {
   Palette,
   Save,
   Sparkles,
+  Store,
   Upload,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useToast } from "../components/toastContext";
@@ -214,8 +215,19 @@ export default function Settings() {
   if (!restaurant) {
     return (
       <DashboardLayout>
-        <div className="app-empty-state">
-          <h2>Please create a restaurant first in the Overview tab.</h2>
+        <div className="flex min-h-[60vh] flex-col items-center justify-center text-center animate-fade-in">
+          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+            <Store size={32} />
+          </div>
+          <h2 className="mb-2 text-2xl font-bold text-slate-900">
+            {t("settings.noRestaurant", "No Restaurant Found")}
+          </h2>
+          <p className="max-w-md text-slate-500 mb-8">
+            {t("settings.noRestaurantDesc", "Please create a restaurant first in the Dashboard before managing your settings.")}
+          </p>
+          <Link to="/dashboard" className="btn btn-primary">
+            {t("settings.goToDashboard", "Go to Dashboard")}
+          </Link>
         </div>
       </DashboardLayout>
     );
@@ -413,7 +425,7 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="card mt-8 max-w-[600px] border-none bg-app-surface">
+        <div className="card mt-8 max-w-[600px] border-none bg-white">
           <div className="card-body flex flex-col gap-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>

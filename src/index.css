@@ -13,9 +13,9 @@
   --color-app-border: #eeeeee;
   --color-app-danger: #ff4444;
   --color-app-danger-hover: #cc0000;
-  --shadow-app-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-app-md: 0 4px 16px rgba(0, 0, 0, 0.06);
-  --shadow-app-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+  --shadow-app-sm: 0 2px 4px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-app-md: 0 4px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.04);
+  --shadow-app-lg: 0 8px 16px rgba(0, 0, 0, 0.06), 0 16px 48px rgba(0, 0, 0, 0.06);
 }
 
 @layer base {
@@ -80,11 +80,11 @@
   }
 
   .card {
-    @apply overflow-hidden rounded-[1.25rem] border border-app-border bg-app-surface shadow-app-sm transition-shadow duration-300;
+    @apply overflow-hidden rounded-3xl border border-app-border/60 bg-white/70 backdrop-blur-md shadow-app-sm transition-all duration-300;
   }
 
   .card:hover {
-    @apply shadow-app-md;
+    @apply shadow-app-md border-app-border/80;
   }
 
   .card-header {

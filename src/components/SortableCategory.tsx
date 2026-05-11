@@ -49,13 +49,13 @@ export default function SortableCategory({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.95 : 1,
     position: "relative" as const,
-    zIndex: isDragging ? 10 : 1,
+    zIndex: isDragging ? 100 : 1,
   };
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div ref={setNodeRef} style={style} className={`transition-all duration-200 rounded-[1.5rem] ${isDragging ? "bg-white shadow-app-xl ring-2 ring-app-primary scale-[1.01] p-4 -m-4" : ""}`}>
       <div className="mb-4 flex items-center justify-between border-b border-app-border pb-2">
         <h2 className="flex items-center gap-2 text-xl font-semibold">
           <div

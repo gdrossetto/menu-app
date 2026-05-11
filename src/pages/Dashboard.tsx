@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { ExternalLink, Printer, Download } from "lucide-react";
+import { ExternalLink, Printer, Download, Edit } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
@@ -200,13 +200,19 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="app-section-stack animate-fade-in">
-        <div>
-          <h1 className="app-page-title">
-            {t("dashboard.overview", "Overview")}
-          </h1>
-          <p className="app-page-subtitle">
-            {t("dashboard.manageMenu", "Manage your digital menu and QR code.")}
-          </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="app-page-title">
+              {t("dashboard.overview", "Overview")}
+            </h1>
+            <p className="app-page-subtitle">
+              {t("dashboard.manageMenu", "Manage your digital menu and QR code.")}
+            </p>
+          </div>
+          <Link to="/dashboard/menu" className="btn btn-primary w-full sm:w-auto">
+            <Edit size={18} />
+            {t("dashboard.editMenuItems", "Edit Menu Items")}
+          </Link>
         </div>
 
         <div className="grid gap-8 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
@@ -345,25 +351,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="card border-none bg-app-surface">
-              <div className="card-body">
-                <h3 className="mb-2 text-[1.1rem] font-semibold">
-                  {t("dashboard.quickActions", "Quick Actions")}
-                </h3>
-                <p className="mb-6 text-[0.9rem] text-app-text-muted">
-                  {t(
-                    "dashboard.updateCategories",
-                    "Update your categories and items. Changes are saved automatically.",
-                  )}
-                </p>
-                <Link
-                  to="/dashboard/menu"
-                  className="btn btn-primary w-full"
-                >
-                  {t("dashboard.editMenuItems", "Edit Menu Items")}
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
       </div>

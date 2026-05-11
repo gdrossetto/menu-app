@@ -5,6 +5,7 @@ import {
   ChevronDown,
   Globe,
   Image as ImageIcon,
+  Search,
   X,
 } from "lucide-react";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -36,6 +37,8 @@ interface TemplateProps {
   scrollToCategory: (id: string) => void;
   changeLanguage: (language: string) => void;
   openImage: (url: string) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
   t: (key: string, options?: string | Record<string, unknown>) => string;
 }
 
@@ -94,6 +97,8 @@ function MinimalistTemplate({
   scrollToCategory,
   changeLanguage,
   openImage,
+  searchQuery,
+  setSearchQuery,
   t,
 }: TemplateProps) {
   return (
@@ -128,6 +133,25 @@ function MinimalistTemplate({
         <p className="text-sm font-medium text-slate-500">
           {t("publicMenu.digitalMenu", "Digital Menu")}
         </p>
+
+        <div className="mt-8 w-full max-w-md relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder={t("publicMenu.searchPlaceholder", "Search menu...")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 shadow-sm transition-all focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-slate-100"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </header>
 
       <div
@@ -157,6 +181,11 @@ function MinimalistTemplate({
       </div>
 
       <main className="mx-auto mt-6 max-w-3xl px-4">
+        {visibleCategories.length === 0 && searchQuery && (
+          <div className="py-12 text-center text-slate-500">
+            {t("publicMenu.noSearchResults", "No results found for")} "{searchQuery}"
+          </div>
+        )}
         {visibleCategories.map((category) => (
           <div
             key={category.id}
@@ -170,7 +199,7 @@ function MinimalistTemplate({
               {(itemsByCategory.get(category.id) ?? []).map((item) => (
                 <div
                   key={item.id}
-                  className={`flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-colors hover:border-slate-200 sm:gap-4 md:p-5 ${
+                  className={`group flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all duration-300 hover:border-slate-200 hover:shadow-lg sm:gap-4 md:p-5 ${
                     item.is_available ? "" : "grayscale opacity-70"
                   }`}
                 >
@@ -235,6 +264,8 @@ function ClassicTemplate({
   scrollToCategory,
   changeLanguage,
   openImage,
+  searchQuery,
+  setSearchQuery,
   t,
 }: TemplateProps) {
   return (
@@ -256,6 +287,25 @@ function ClassicTemplate({
         <p className="text-sm uppercase tracking-[0.2em] text-stone-500">
           {t("publicMenu.menu", "Menu")}
         </p>
+
+        <div className="mt-8 w-full max-w-sm relative">
+          <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+          <input
+            type="text"
+            placeholder={t("publicMenu.searchPlaceholder", "Search menu...")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full border-b border-stone-300 bg-transparent py-2 pl-8 pr-8 text-sm text-stone-900 placeholder-stone-400 focus:border-stone-900 focus:outline-none transition-colors"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </header>
 
       <div
@@ -285,6 +335,11 @@ function ClassicTemplate({
       </div>
 
       <main className="mx-auto mt-12 max-w-3xl px-6">
+        {visibleCategories.length === 0 && searchQuery && (
+          <div className="py-12 text-center italic text-stone-500">
+            {t("publicMenu.noSearchResults", "No results found for")} "{searchQuery}"
+          </div>
+        )}
         {visibleCategories.map((category) => (
           <div
             key={category.id}
@@ -298,7 +353,7 @@ function ClassicTemplate({
               {(itemsByCategory.get(category.id) ?? []).map((item) => (
                 <div
                   key={item.id}
-                  className={`flex items-start gap-4 ${
+                  className={`group flex items-start gap-4 transition-all duration-300 ${
                     item.is_available ? "" : "opacity-65"
                   }`}
                 >
@@ -364,6 +419,8 @@ function DarkTemplate({
   scrollToCategory,
   changeLanguage,
   openImage,
+  searchQuery,
+  setSearchQuery,
   t,
 }: TemplateProps) {
   return (
@@ -397,6 +454,25 @@ function DarkTemplate({
         <p className="text-xs font-bold tracking-[0.3em] uppercase text-yellow-500">
           {t("publicMenu.scanAndOrder", "Scan & Order")}
         </p>
+
+        <div className="mt-8 w-full max-w-md relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <input
+            type="text"
+            placeholder={t("publicMenu.searchPlaceholder", "SEARCH MENU...")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full border-2 border-zinc-800 bg-zinc-900 py-3 pl-11 pr-4 text-xs font-bold tracking-widest text-white placeholder-zinc-600 focus:border-yellow-500 focus:outline-none transition-colors uppercase"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-yellow-500"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </header>
 
       <div
@@ -426,6 +502,11 @@ function DarkTemplate({
       </div>
 
       <main className="mx-auto mt-8 max-w-3xl px-4">
+        {visibleCategories.length === 0 && searchQuery && (
+          <div className="py-12 text-center text-xs font-bold tracking-widest text-zinc-600 uppercase">
+            {t("publicMenu.noSearchResults", "No results found for")} "{searchQuery}"
+          </div>
+        )}
         {visibleCategories.map((category) => (
           <div
             key={category.id}
@@ -443,7 +524,7 @@ function DarkTemplate({
               {(itemsByCategory.get(category.id) ?? []).map((item) => (
                 <div
                   key={item.id}
-                  className={`flex items-center gap-4 border border-zinc-800 bg-zinc-900/50 p-4 transition-colors hover:border-zinc-600 ${
+                  className={`group flex items-center gap-4 border border-zinc-800 bg-zinc-900/50 p-4 transition-all duration-300 hover:border-yellow-500/50 hover:bg-zinc-900 hover:shadow-[0_0_15px_rgba(234,179,8,0.1)] ${
                     item.is_available ? "" : "opacity-65"
                   }`}
                 >
@@ -508,6 +589,8 @@ function VisualTemplate({
   scrollToCategory,
   changeLanguage,
   openImage,
+  searchQuery,
+  setSearchQuery,
   t,
 }: TemplateProps) {
   return (
@@ -536,6 +619,25 @@ function VisualTemplate({
         <h1 className="mb-1 text-2xl font-bold tracking-tight text-gray-900">
           {restaurant.name}
         </h1>
+
+        <div className="mt-6 w-full max-w-md relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-400" />
+          <input
+            type="text"
+            placeholder={t("publicMenu.searchPlaceholder", "Search menu...")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:outline-none focus:ring-4 focus:ring-orange-100"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </header>
 
       <div
@@ -565,6 +667,11 @@ function VisualTemplate({
       </div>
 
       <main className="mx-auto mt-8 max-w-4xl px-4">
+        {visibleCategories.length === 0 && searchQuery && (
+          <div className="py-12 text-center font-bold text-gray-500">
+            {t("publicMenu.noSearchResults", "No results found for")} "{searchQuery}"
+          </div>
+        )}
         {visibleCategories.map((category) => (
           <div
             key={category.id}
@@ -579,7 +686,7 @@ function VisualTemplate({
               {(itemsByCategory.get(category.id) ?? []).map((item) => (
                 <div
                   key={item.id}
-                  className={`flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md ${
+                  className={`group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-xl ${
                     item.is_available ? "" : "grayscale opacity-70"
                   }`}
                 >
@@ -673,25 +780,41 @@ export default function PublicMenu() {
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const visibleCategories = useMemo(
-    () =>
-      categories.filter((category) =>
-        items.some((item) => item.category_id === category.id && item.is_available),
-      ),
-    [categories, items],
+    () => {
+      const lowerQuery = searchQuery.toLowerCase();
+      return categories.filter((category) =>
+        items.some(
+          (item) =>
+            item.category_id === category.id &&
+            item.is_available &&
+            (item.name.toLowerCase().includes(lowerQuery) ||
+              (item.description && item.description.toLowerCase().includes(lowerQuery)))
+        ),
+      );
+    },
+    [categories, items, searchQuery],
   );
 
   const itemsByCategory = useMemo(() => {
     const map = new Map<string, MenuItem[]>();
+    const lowerQuery = searchQuery.toLowerCase();
     for (const category of visibleCategories) {
       map.set(
         category.id,
-        items.filter((item) => item.category_id === category.id && item.is_available),
+        items.filter(
+          (item) =>
+            item.category_id === category.id &&
+            item.is_available &&
+            (item.name.toLowerCase().includes(lowerQuery) ||
+              (item.description && item.description.toLowerCase().includes(lowerQuery)))
+        ),
       );
     }
     return map;
-  }, [items, visibleCategories]);
+  }, [items, visibleCategories, searchQuery]);
 
   const loadMenu = useCallback(async () => {
     if (!restaurantId) return;
@@ -814,7 +937,7 @@ export default function PublicMenu() {
   const previewTheme = searchParams.get("previewTheme");
   const activeTheme = getTheme(previewTheme ?? restaurant.menu_theme);
 
-  if (!visibleCategories.length) {
+  if (!items.some(item => item.is_available)) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] px-6 py-16 text-center">
         <div className="mx-auto flex max-w-md flex-col items-center">
@@ -853,6 +976,8 @@ export default function PublicMenu() {
         scrollToCategory,
         changeLanguage: (language) => i18n.changeLanguage(language),
         openImage: setSelectedImage,
+        searchQuery,
+        setSearchQuery,
         t: (key, options) =>
           typeof options === "string" ? t(key, options) : t(key, options ?? {}),
       })}

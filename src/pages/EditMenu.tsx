@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { ArrowRight, FileUp, Lock, Plus, X, Upload } from "lucide-react";
+import { ArrowRight, FileUp, Lock, Plus, X, Upload, Smartphone, Store } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import MenuImportModal from "../components/MenuImportModal";
@@ -49,6 +49,7 @@ export default function EditMenu() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isImportingMenu, setIsImportingMenu] = useState(false);
   const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false);
   const { t } = useTranslation();
@@ -77,6 +78,8 @@ export default function EditMenu() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
+  const categoryInputRef = useRef<HTMLInputElement>(null);
+  const itemInputRef = useRef<HTMLInputElement>(null);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -185,6 +188,8 @@ export default function EditMenu() {
         t("editMenu.categoryAdded", "Category added"),
         t("editMenu.categoryAddedDescription", "Your category is ready for items."),
       );
+      // Auto-focus after adding
+      setTimeout(() => categoryInputRef.current?.focus(), 100);
     } else {
       logger.error("Failed to add category.", error, {
         restaurantId,
@@ -352,6 +357,8 @@ export default function EditMenu() {
       setNewItemImageFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       toast.success(t("editMenu.itemAdded", "Item added"));
+      // Auto-focus after adding
+      setTimeout(() => itemInputRef.current?.focus(), 100);
     } else {
       logger.error("Failed to add menu item.", error, {
         restaurantId,
@@ -514,8 +521,19 @@ export default function EditMenu() {
   if (!restaurantId) {
     return (
       <DashboardLayout>
-        <div className="app-empty-state">
-          <h2>Please create a restaurant first in the Dashboard.</h2>
+        <div className="flex min-h-[60vh] flex-col items-center justify-center text-center animate-fade-in">
+          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+            <Store size={32} />
+          </div>
+          <h2 className="mb-2 text-2xl font-bold text-slate-900">
+            {t("editMenu.noRestaurant", "No Restaurant Found")}
+          </h2>
+          <p className="max-w-md text-slate-500 mb-8">
+            {t("editMenu.noRestaurantDesc", "Please create a restaurant first in the Dashboard before managing your menu.")}
+          </p>
+          <Link to="/dashboard" className="btn btn-primary">
+            {t("editMenu.goToDashboard", "Go to Dashboard")}
+          </Link>
         </div>
       </DashboardLayout>
     );
@@ -532,6 +550,26 @@ export default function EditMenu() {
             <p className="app-page-subtitle">
               {t('editMenu.subtitle', 'Organize your categories and items.')}
             </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {hasExistingMenuItems && hasAiImportAccess(restaurant) && (
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="btn btn-outline hidden sm:flex"
+              >
+                <FileUp size={18} />
+                {t("editMenu.importCta", "Import")}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsPreviewOpen(true)}
+              className="btn btn-outline hidden sm:flex"
+            >
+              <Smartphone size={18} />
+              {t("editMenu.livePreview", "Live Preview")}
+            </button>
           </div>
         </div>
 
@@ -553,111 +591,112 @@ export default function EditMenu() {
           </div>
         )}
 
-        <div
-          className="card mb-6 border-none bg-gradient-to-b from-app-surface to-app-surface-hover"
-        >
-          <div className="card-body flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div className="max-w-[560px]">
-              <p className="mb-1.5 text-[0.78rem] font-bold uppercase tracking-[0.06em] text-app-primary">
-                {t("editMenu.importSellEyebrow", "Speed up setup")}
-              </p>
-              <h3 className="mb-1.5 text-[1.1rem] font-semibold">
-                {t(
-                  "editMenu.importSellTitle",
-                  "Already have a printed or existing menu?",
-                )}
-              </h3>
-              <p className="text-[0.94rem] text-app-text-muted">
-                {hasAiImportAccess(restaurant)
-                  ? t(
-                      "editMenu.importSellSubtitle",
-                      "Import a photo or PDF, review the draft, and add the items without rebuilding everything by hand.",
-                    )
-                  : t(
-                      "editMenu.importSellSubtitleLocked",
-                      "AI import is part of the Professional plan. Upgrade to turn existing photos and PDFs into reviewed menu drafts.",
-                    )}
-              </p>
-            </div>
+        {!hasExistingMenuItems && (
+          <div
+            className="card mb-6 border-none bg-gradient-to-b from-app-surface to-app-surface-hover"
+          >
+            <div className="card-body flex flex-col items-center justify-between gap-4 md:flex-row">
+              <div className="max-w-[560px]">
+                <p className="mb-1.5 text-[0.78rem] font-bold uppercase tracking-[0.06em] text-app-primary">
+                  {t("editMenu.importSellEyebrow", "Speed up setup")}
+                </p>
+                <h3 className="mb-1.5 text-[1.1rem] font-semibold">
+                  {t(
+                    "editMenu.importSellTitle",
+                    "Already have a printed or existing menu?",
+                  )}
+                </h3>
+                <p className="text-[0.94rem] text-app-text-muted">
+                  {hasAiImportAccess(restaurant)
+                    ? t(
+                        "editMenu.importSellSubtitle",
+                        "Import a photo or PDF, review the draft, and add the items without rebuilding everything by hand.",
+                      )
+                    : t(
+                        "editMenu.importSellSubtitleLocked",
+                        "AI import is part of the Professional plan. Upgrade to turn existing photos and PDFs into reviewed menu drafts.",
+                      )}
+                </p>
+              </div>
 
-            {hasAiImportAccess(restaurant) ? (
-              <button
-                type="button"
-                onClick={() => setIsImportModalOpen(true)}
-                className="btn btn-primary whitespace-nowrap"
-              >
-                <FileUp size={18} />
-                {t("editMenu.importCta", "Import menu")}
-              </button>
-            ) : (
-              <div className="flex flex-col items-start gap-2 md:items-end">
-                <span className="inline-flex items-center gap-1 rounded-full bg-app-surface px-3 py-1 text-[0.78rem] font-semibold uppercase tracking-[0.05em] text-app-text-muted shadow-app-sm">
-                  <Lock className="h-3.5 w-3.5" />
-                  {t("editMenu.importLockedBadge", "Professional")}
-                </span>
+              {hasAiImportAccess(restaurant) ? (
                 <button
                   type="button"
-                  onClick={async () => {
-                    try {
-                      setIsRedirectingToCheckout(true);
-                      await startAiImportCheckout("/dashboard/menu");
-                    } catch (error) {
-                      const message = getErrorMessage(
-                        error,
-                        t(
-                          "editMenu.importUpgradeError",
-                          "We could not start checkout right now.",
-                        ),
-                      );
-                      logger.error("Failed to start checkout from menu editor.", error, {
-                        restaurantId,
-                        planTier: restaurant?.plan_tier,
-                      });
-                      toast.error(t("settings.billingCheckoutFailed", "Could not start checkout"), message);
-                    } finally {
-                      setIsRedirectingToCheckout(false);
-                    }
-                  }}
+                  onClick={() => setIsImportModalOpen(true)}
                   className="btn btn-primary whitespace-nowrap"
-                  disabled={isRedirectingToCheckout}
                 >
-                  <ArrowRight className="h-4 w-4" />
-                  {isRedirectingToCheckout
-                    ? t("editMenu.importUpgradeLoading", "Redirecting...")
-                    : t("editMenu.importUpgradeCta", "Upgrade for AI import")}
+                  <FileUp size={18} />
+                  {t("editMenu.importCta", "Import menu")}
                 </button>
-              </div>
-            )}
+              ) : (
+                <div className="flex flex-col items-start gap-2 md:items-end">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-app-surface px-3 py-1 text-[0.78rem] font-semibold uppercase tracking-[0.05em] text-app-text-muted shadow-app-sm">
+                    <Lock className="h-3.5 w-3.5" />
+                    {t("editMenu.importLockedBadge", "Professional")}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        setIsRedirectingToCheckout(true);
+                        await startAiImportCheckout("/dashboard/menu");
+                      } catch (error) {
+                        const message = getErrorMessage(
+                          error,
+                          t(
+                            "editMenu.importUpgradeError",
+                            "We could not start checkout right now.",
+                          ),
+                        );
+                        logger.error("Failed to start checkout from menu editor.", error, {
+                          restaurantId,
+                          planTier: restaurant?.plan_tier,
+                        });
+                        toast.error(t("settings.billingCheckoutFailed", "Could not start checkout"), message);
+                      } finally {
+                        setIsRedirectingToCheckout(false);
+                      }
+                    }}
+                    className="btn btn-primary whitespace-nowrap"
+                    disabled={isRedirectingToCheckout}
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                    {isRedirectingToCheckout
+                      ? t("editMenu.importUpgradeLoading", "Redirecting...")
+                      : t("editMenu.importUpgradeCta", "Upgrade for AI import")}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-          <div className="h-px bg-gradient-to-r from-black/4 to-app-border" />
-          <div className="text-center">
-            <p className="mb-1 text-[0.78rem] font-bold uppercase tracking-[0.06em] text-app-text-muted">
-              {t("editMenu.manualDividerEyebrow", "Or")}
-            </p>
-            <p className="text-[0.96rem] font-semibold text-app-text">
-              {hasExistingMenuItems
-                ? t(
-                    "editMenu.manualDividerTitleExisting",
-                    "Or keep editing your menu manually",
-                  )
-                : t("editMenu.manualDividerTitleEmpty", "Build your menu from scratch")}
-            </p>
+        {!hasExistingMenuItems && (
+          <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+            <div className="h-px bg-gradient-to-r from-black/4 to-app-border" />
+            <div className="text-center">
+              <p className="mb-1 text-[0.78rem] font-bold uppercase tracking-[0.06em] text-app-text-muted">
+                {t("editMenu.manualDividerEyebrow", "Or")}
+              </p>
+              <p className="text-[0.96rem] font-semibold text-app-text">
+                {t("editMenu.manualDividerTitleEmpty", "Build your menu from scratch")}
+              </p>
+            </div>
+            <div className="h-px bg-gradient-to-r from-app-border to-black/4" />
           </div>
-          <div className="h-px bg-gradient-to-r from-app-border to-black/4" />
-        </div>
+        )}
 
         {/* Add Category Form */}
-        <div
-          className="card mb-8 border-none bg-app-surface"
-        >
+        <div className="card mb-8 bg-app-surface">
           <div className="card-body">
-            <form onSubmit={addCategory} className="flex flex-col items-center gap-4 md:flex-row">
+            <h3 className="mb-4 text-[1.1rem] font-semibold">
+              {t('editMenu.addNewCategory', 'Add New Category')}
+            </h3>
+            <form onSubmit={addCategory} className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
               <input
                 type="text"
-                className="form-input flex-1"
+                ref={categoryInputRef}
+                className="form-input w-full sm:flex-1"
                 placeholder={t('editMenu.newCategoryPlaceholder', 'New Category Name (e.g., Starters)')}
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
@@ -675,11 +714,9 @@ export default function EditMenu() {
 
         {/* Add Item Form */}
         {categories.length > 0 && (
-          <div
-            className="card mb-12 border-none bg-app-bg shadow-none"
-          >
-            <div className="p-0">
-              <h3 className="mb-4 text-base font-semibold">
+          <div className="card mb-12 bg-app-surface">
+            <div className="card-body">
+              <h3 className="mb-4 text-[1.1rem] font-semibold">
                 {t('editMenu.addNewItem', 'Add New Item')}
               </h3>
               <form
@@ -706,6 +743,7 @@ export default function EditMenu() {
                 </select>
                 <input
                   type="text"
+                  ref={itemInputRef}
                   className="form-input"
                   placeholder={t('editMenu.itemName', 'Item Name')}
                   value={newItem.name}
@@ -972,6 +1010,30 @@ export default function EditMenu() {
           }}
           onImport={importMenuDraft}
         />
+      )}
+
+      {/* Live Preview Modal */}
+      {isPreviewOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm sm:p-6" onClick={() => setIsPreviewOpen(false)}>
+          <div 
+            className="relative flex h-full w-full max-w-[400px] flex-col overflow-hidden rounded-[2rem] border-8 border-slate-800 bg-white shadow-2xl" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="absolute left-1/2 top-4 z-10 h-1.5 w-16 -translate-x-1/2 rounded-full bg-slate-200" />
+            <button
+              onClick={() => setIsPreviewOpen(false)}
+              className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900"
+            >
+              <X size={16} />
+            </button>
+            <div className="h-10 w-full shrink-0 bg-white" />
+            <iframe 
+              src={`/m/${restaurantId}?previewTheme=${restaurant?.menu_theme}`} 
+              className="h-full w-full flex-1 border-0" 
+              title="Live Preview"
+            />
+          </div>
+        </div>
       )}
     </DashboardLayout>
   );

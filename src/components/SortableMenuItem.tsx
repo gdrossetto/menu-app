@@ -30,15 +30,19 @@ export default function SortableMenuItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.4 : item.is_available ? 1 : 0.6,
+    opacity: isDragging ? 0.95 : item.is_available ? 1 : 0.6,
     position: "relative" as const,
-    zIndex: isDragging ? 10 : 1,
+    zIndex: isDragging ? 100 : 1,
   };
 
   return (
     <div
       ref={setNodeRef}
-      className="card flex flex-wrap items-center justify-between gap-4 border-none p-4 shadow-app-sm"
+      className={`card flex flex-wrap items-center justify-between gap-4 border p-4 transition-all duration-200 ${
+        isDragging
+          ? "scale-[1.02] border-app-primary bg-white shadow-app-lg"
+          : "border-transparent shadow-app-sm"
+      }`}
       style={style}
     >
       <div className="flex items-center gap-4">
