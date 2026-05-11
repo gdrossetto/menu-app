@@ -95,125 +95,7 @@ const LanguageToggle = ({ mobile = false }: { mobile?: boolean }) => {
   );
 };
 
-const PhoneMockup = () => {
-  const { t } = useTranslation();
 
-  const categories = [
-    t("landing.phone.categories.0", "Starters"),
-    t("landing.phone.categories.1", "Soup & Salad"),
-    t("landing.phone.categories.2", "Main Course"),
-  ];
-
-  const items = [
-    {
-      name: t("landing.phone.items.0.name", "Mozzarella Sticks"),
-      price: t("landing.phone.items.0.price", "R$7.99"),
-    },
-    {
-      name: t("landing.phone.items.1.name", "Stuffed Mushrooms"),
-      price: t("landing.phone.items.1.price", "R$8.99"),
-    },
-    {
-      name: t("landing.phone.items.2.name", "Chicken Tenders"),
-      price: t("landing.phone.items.2.price", "R$9.99"),
-    },
-    {
-      name: t("landing.phone.items.3.name", "Bruschetta"),
-      price: t("landing.phone.items.3.price", "R$6.99"),
-    },
-  ];
-
-  return (
-    <div className="relative z-10 flex h-[580px] w-[280px] rotate-[-2deg] flex-col overflow-hidden rounded-[2.5rem] border-[8px] border-slate-900 bg-white shadow-2xl transition-transform duration-500 hover:rotate-0">
-      <div className="absolute inset-x-0 top-0 z-20 flex h-6 justify-center">
-        <div className="h-6 w-32 rounded-b-xl bg-slate-900" />
-      </div>
-
-      <div className="relative flex flex-1 flex-col overflow-hidden bg-slate-50">
-        <div className="relative flex h-32 w-full items-center justify-center bg-slate-800">
-          <FileImage className="h-8 w-8 text-slate-600" />
-        </div>
-
-        <div className="flex flex-1 flex-col px-5 pt-4 pb-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-2xl font-bold text-slate-900">Rossetto</h3>
-            <div className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold text-slate-600">
-              {t("landing.phone.language", "PT")}{" "}
-              <span className="ml-1 text-[10px]">▼</span>
-            </div>
-          </div>
-
-          <div className="hide-scrollbar -mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-2">
-            <div className="whitespace-nowrap rounded-full bg-[#231f20] px-4 py-2 text-xs font-medium text-white">
-              {categories[0]}
-            </div>
-            <div className="whitespace-nowrap rounded-full bg-slate-100 px-4 py-2 text-xs font-medium text-slate-500">
-              {categories[1]}
-            </div>
-            <div className="whitespace-nowrap rounded-full bg-slate-100 px-4 py-2 text-xs font-medium text-slate-500">
-              {categories[2]}
-            </div>
-          </div>
-
-          <div className="flex-1 space-y-3">
-            {items.map((item) => (
-              <div
-                key={item.name}
-                className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-4 shadow-sm"
-              >
-                <h4 className="text-sm font-semibold text-slate-900">{item.name}</h4>
-                <span className="text-sm font-bold text-slate-900">{item.price}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const QRCodeMockup = () => {
-  const { t } = useTranslation();
-
-  return (
-    <div className="absolute -bottom-8 -left-16 z-20 flex w-72 rotate-[4deg] flex-col items-center rounded-3xl border border-slate-100 bg-white p-6 text-center shadow-2xl transition-transform duration-500 hover:rotate-[6deg]">
-      <div className="relative mb-6 flex h-40 w-40 flex-col justify-between rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
-        <div className="flex h-[30%] w-full justify-between">
-          <div className="h-10 w-10 rounded-sm border-[5px] border-black" />
-          <div className="h-10 w-10 rounded-sm border-[5px] border-black" />
-        </div>
-        <div className="flex flex-1 flex-wrap gap-1 overflow-hidden p-1 opacity-80">
-          {[...Array(12)].map((_, index) => (
-            <div key={index} className="h-3 w-3 rounded-sm bg-black" />
-          ))}
-        </div>
-        <div className="relative flex h-[30%] w-full justify-between">
-          <div className="h-10 w-10 rounded-sm border-[5px] border-black" />
-          <div className="absolute bottom-0 right-0 h-8 w-8 rounded-sm bg-black" />
-        </div>
-      </div>
-
-      <h4 className="mb-2 text-lg font-bold text-slate-900">
-        {t("landing.qr.title", "Your QR Code")}
-      </h4>
-      <p className="mb-6 text-xs leading-relaxed text-slate-500">
-        {t(
-          "landing.qr.description",
-          "Customers can scan this to view your menu instantly.",
-        )}
-      </p>
-
-      <div className="flex w-full justify-center gap-2">
-        <div className="flex cursor-pointer items-center gap-1.5 rounded-full bg-black px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-slate-800">
-          <Download className="h-3.5 w-3.5" /> {t("landing.qr.save", "Save")}
-        </div>
-        <div className="flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50">
-          <Printer className="h-3.5 w-3.5" /> {t("landing.qr.print", "Print")}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const Navbar = () => {
   const { t } = useTranslation();
@@ -351,7 +233,7 @@ const Hero = () => {
             </div>
             <h1 className="mb-6 text-5xl leading-[1.1] font-extrabold tracking-tight text-slate-900 lg:text-6xl">
               {t("landing.hero.titlePrefix", "The modern menu for")}{" "}
-              <span className="text-slate-600">
+              <span className="bg-gradient-to-r from-slate-600 to-slate-900 bg-clip-text text-transparent">
                 {t("landing.hero.titleAccent", "modern dining.")}
               </span>
             </h1>
@@ -389,12 +271,86 @@ const Hero = () => {
             </p>
           </div>
 
-          <div className="perspective-1000 relative flex justify-center lg:justify-end lg:pr-12">
-            <div className="relative">
-              <div className="absolute top-1/2 left-1/2 -z-10 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-200/50 blur-3xl" />
-              <div className="absolute top-1/4 right-0 -z-10 h-[300px] w-[300px] rounded-full bg-slate-300/20 blur-3xl" />
-              <PhoneMockup />
-              <QRCodeMockup />
+          <div className="perspective-1000 relative flex justify-center lg:justify-end">
+            <div className="relative w-full max-w-[600px]">
+              <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-200/50 blur-[100px]" />
+              <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-transform duration-500 hover:rotate-0 md:rotate-[2deg]">
+                <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3">
+                  <div className="h-3 w-3 rounded-full bg-red-400" />
+                  <div className="h-3 w-3 rounded-full bg-yellow-400" />
+                  <div className="h-3 w-3 rounded-full bg-green-400" />
+                </div>
+                <img
+                  src="/images/dashboard-preview.png"
+                  alt="MenuQR Dashboard"
+                  className="w-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ThemePreviewer = () => {
+  const { t } = useTranslation();
+  const [activeTheme, setActiveTheme] = useState("classic");
+  const demoRestaurantId = "20f89f6a-a00d-455d-9358-37deb286f4e2"; // The test restaurant ID
+
+  const themes = [
+    { id: "classic", name: t("landing.themes.classic", "Classic") },
+    { id: "modern", name: t("landing.themes.modern", "Modern") },
+    { id: "minimal", name: t("landing.themes.minimal", "Minimalist") },
+    { id: "visual", name: t("landing.themes.visual", "Visual Grid") },
+  ];
+
+  return (
+    <section className="bg-slate-900 py-24 text-white">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mb-16 text-center">
+          <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
+            {t("landing.preview.title", "Four stunning themes out of the box.")}
+          </h2>
+          <p className="mx-auto max-w-2xl text-lg text-slate-400">
+            {t(
+              "landing.preview.subtitle",
+              "Switch themes instantly without touching a line of code. Your menu automatically adapts perfectly to each layout.",
+            )}
+          </p>
+        </div>
+
+        <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:justify-center lg:gap-16">
+          <div className="flex w-full flex-col gap-4 lg:w-[300px]">
+            {themes.map((theme) => (
+              <button
+                key={theme.id}
+                onClick={() => setActiveTheme(theme.id)}
+                className={`flex w-full items-center justify-between rounded-2xl border p-5 text-left transition-all duration-300 ${
+                  activeTheme === theme.id
+                    ? "border-slate-700 bg-slate-800 shadow-xl"
+                    : "border-slate-800 bg-transparent text-slate-400 hover:border-slate-700 hover:bg-slate-800/50"
+                }`}
+              >
+                <span className="text-lg font-semibold">{theme.name}</span>
+                {activeTheme === theme.id && (
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-slate-900">
+                    <CheckCircle2 className="h-4 w-4" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative flex justify-center">
+            <div className="absolute top-1/2 left-1/2 -z-10 h-[400px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-500/20 blur-[100px]" />
+            <div className="h-[650px] w-[320px] overflow-hidden rounded-[2.5rem] border-[8px] border-black bg-white shadow-2xl transition-all duration-500">
+              <iframe
+                src={`/m/${demoRestaurantId}?previewTheme=${activeTheme}`}
+                className="h-full w-full border-none bg-app-surface"
+                title="Theme Preview"
+              />
             </div>
           </div>
         </div>
@@ -405,57 +361,6 @@ const Hero = () => {
 
 const Features = () => {
   const { t } = useTranslation();
-
-  const features = [
-    {
-      icon: Smartphone,
-      title: t("landing.features.mobile.title", "Mobile-First Menus"),
-      description: t(
-        "landing.features.mobile.description",
-        "Fast, beautiful, and intuitive menus optimized for the screens your customers already have in their hands.",
-      ),
-    },
-    {
-      icon: QrCode,
-      title: t("landing.features.qr.title", "Instant QR Generation"),
-      description: t(
-        "landing.features.qr.description",
-        "Download high-res PNGs for your tables or use our print-optimized layouts to get started instantly.",
-      ),
-    },
-    {
-      icon: BarChart,
-      title: t("landing.features.analytics.title", "Real-Time Analytics"),
-      description: t(
-        "landing.features.analytics.description",
-        "Track daily menu views, popular categories, and peak scanning times directly from your dashboard.",
-      ),
-    },
-    {
-      icon: Globe,
-      title: t("landing.features.translations.title", "Smart Translations"),
-      description: t(
-        "landing.features.translations.description",
-        "Automatically detect browser language and serve your menu seamlessly in English, Portuguese, and more.",
-      ),
-    },
-    {
-      icon: MoveVertical,
-      title: t("landing.features.editor.title", "Drag & Drop Editor"),
-      description: t(
-        "landing.features.editor.description",
-        "Reorder categories and items instantly with a fluid drag-and-drop interface. Changes are live immediately.",
-      ),
-    },
-    {
-      icon: Printer,
-      title: t("landing.features.print.title", "Print Optimized"),
-      description: t(
-        "landing.features.print.description",
-        "Need a physical copy? Access a dedicated print view that removes web UI and saves your ink.",
-      ),
-    },
-  ];
 
   return (
     <section id="features" className="bg-white py-24">
@@ -475,23 +380,105 @@ const Features = () => {
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="group rounded-3xl border border-slate-100 bg-slate-50 p-8 transition-all duration-300 hover:border-slate-300 hover:shadow-lg"
-            >
-              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:text-black">
-                <feature.icon className="h-6 w-6 text-slate-700 group-hover:text-black" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Card 1: Drag & Drop (Spans 2 columns) */}
+          <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-sm transition-all duration-300 hover:shadow-app-lg lg:col-span-2">
+            <div className="p-8 pb-0">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm">
+                <MoveVertical className="h-6 w-6" />
               </div>
-              <h3 className="mb-3 text-xl font-semibold text-slate-900">
-                {feature.title}
+              <h3 className="mb-2 text-2xl font-bold text-slate-900">
+                {t("landing.features.editor.title", "Drag & Drop Editor")}
               </h3>
-              <p className="leading-relaxed text-slate-600">
-                {feature.description}
+              <p className="max-w-md text-slate-600">
+                {t(
+                  "landing.features.editor.description",
+                  "Reorder categories and items instantly with a fluid drag-and-drop interface. Changes are live immediately.",
+                )}
               </p>
             </div>
-          ))}
+            <div className="mt-8 flex justify-end pl-8">
+              <img
+                src="/images/editor-preview.png"
+                alt="Menu Editor"
+                className="w-full max-w-[600px] translate-x-4 rounded-tl-2xl border-t border-l border-slate-200 shadow-2xl sm:translate-x-0"
+              />
+            </div>
+          </div>
+
+          {/* Card 2: Mobile First (Spans 1 column) */}
+          <div className="relative flex flex-col overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 text-white shadow-sm transition-all duration-300 hover:shadow-app-lg">
+            <div className="p-8 pb-0">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-white shadow-sm">
+                <Smartphone className="h-6 w-6" />
+              </div>
+              <h3 className="mb-2 text-2xl font-bold text-white">
+                {t("landing.features.mobile.title", "Mobile-First Menus")}
+              </h3>
+              <p className="text-slate-400">
+                {t(
+                  "landing.features.mobile.description",
+                  "Fast, beautiful, and intuitive menus optimized for the screens your customers already have in their hands.",
+                )}
+              </p>
+            </div>
+            <div className="mt-8 flex flex-1 items-end justify-center px-8">
+              <img
+                src="/images/mobile-menu-preview.png"
+                alt="Mobile Menu"
+                className="w-full max-w-[220px] translate-y-8 rounded-t-[2rem] border-[6px] border-slate-800 shadow-2xl transition-transform duration-500 hover:translate-y-4"
+              />
+            </div>
+          </div>
+
+          {/* Row 2: Three equal columns */}
+          {/* Card 3: Analytics */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-app-lg">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 text-slate-700 shadow-sm">
+              <BarChart className="h-6 w-6" />
+            </div>
+            <h3 className="mb-2 text-xl font-bold text-slate-900">
+              {t("landing.features.analytics.title", "Real-Time Analytics")}
+            </h3>
+            <p className="text-slate-600">
+              {t(
+                "landing.features.analytics.description",
+                "Track daily menu views, popular categories, and peak scanning times directly from your dashboard.",
+              )}
+            </p>
+          </div>
+
+          {/* Card 4: Translations */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-app-lg">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 text-slate-700 shadow-sm">
+              <Globe className="h-6 w-6" />
+            </div>
+            <h3 className="mb-2 text-xl font-bold text-slate-900">
+              {t("landing.features.translations.title", "Smart Translations")}
+            </h3>
+            <p className="text-slate-600">
+              {t(
+                "landing.features.translations.description",
+                "Automatically detect browser language and serve your menu seamlessly in English, Portuguese, and more.",
+              )}
+            </p>
+          </div>
+
+          {/* Card 5: QR Code */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-app-lg">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 text-slate-700 shadow-sm">
+              <QrCode className="h-6 w-6" />
+            </div>
+            <h3 className="mb-2 text-xl font-bold text-slate-900">
+              {t("landing.features.qr.title", "Instant QR Generation")}
+            </h3>
+            <p className="text-slate-600">
+              {t(
+                "landing.features.qr.description",
+                "Download high-res PNGs for your tables or use our print-optimized layouts to get started instantly.",
+              )}
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -860,6 +847,7 @@ export default function LandingPage() {
       <Navbar />
       <main>
         <Hero />
+        <ThemePreviewer />
         <Features />
         <AIHighlight />
         <Pricing />
