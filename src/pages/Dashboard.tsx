@@ -200,19 +200,13 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="app-section-stack animate-fade-in">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="app-page-title">
-              {t("dashboard.overview", "Overview")}
-            </h1>
-            <p className="app-page-subtitle">
-              {t("dashboard.manageMenu", "Manage your digital menu and QR code.")}
-            </p>
-          </div>
-          <Link to="/dashboard/menu" className="btn btn-primary w-full sm:w-auto">
-            <Edit size={18} />
-            {t("dashboard.editMenuItems", "Edit Menu Items")}
-          </Link>
+        <div>
+          <h1 className="app-page-title">
+            {t("dashboard.overview", "Overview")}
+          </h1>
+          <p className="app-page-subtitle">
+            {t("dashboard.manageMenu", "Manage your digital menu and QR code.")}
+          </p>
         </div>
 
         <div className="grid gap-8 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
@@ -264,6 +258,29 @@ export default function Dashboard() {
           </div>
 
           <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Link
+                to={`/m/${restaurant.id}`}
+                target="_blank"
+                className="card flex aspect-square flex-col items-center justify-center gap-4 border-none bg-app-surface text-app-text transition-all duration-200 hover:shadow-app-lg"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-app-primary/10 text-app-primary">
+                  <ExternalLink size={24} />
+                </div>
+                <span className="font-semibold">{t("dashboard.viewPublicMenu", "View Public Menu")}</span>
+              </Link>
+
+              <Link
+                to="/dashboard/menu"
+                className="card flex aspect-square flex-col items-center justify-center gap-4 border-none bg-app-primary text-white transition-all duration-200 hover:shadow-app-lg"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20">
+                  <Edit size={24} />
+                </div>
+                <span className="font-semibold">{t("dashboard.editMenuItems", "Edit Menu Items")}</span>
+              </Link>
+            </div>
+
             <div className="card border-none bg-app-surface">
               <div className="card-body">
                 <div className="mb-6 flex items-center justify-between">
@@ -350,7 +367,6 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
