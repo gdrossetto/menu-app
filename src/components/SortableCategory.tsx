@@ -55,7 +55,7 @@ export default function SortableCategory({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className={`transition-all duration-200 rounded-[1.5rem] ${isDragging ? "bg-white shadow-app-xl ring-2 ring-app-primary scale-[1.01] p-4 -m-4" : ""}`}>
+    <div ref={setNodeRef} style={style} className={`transition-shadow transition-colors duration-200 rounded-[1.5rem] ${isDragging ? "bg-white shadow-app-xl ring-2 ring-app-primary p-4 -m-4" : ""}`}>
       <div className="mb-4 flex items-center justify-between border-b border-app-border pb-2">
         <h2 className="flex items-center gap-2 text-xl font-semibold">
           <div

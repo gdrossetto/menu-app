@@ -38,9 +38,9 @@ export default function SortableMenuItem({
   return (
     <div
       ref={setNodeRef}
-      className={`card flex flex-wrap items-center justify-between gap-4 border p-4 transition-all duration-200 ${
+      className={`card flex flex-wrap items-center justify-between gap-4 border p-4 transition-shadow transition-colors duration-200 ${
         isDragging
-          ? "scale-[1.02] border-app-primary bg-white shadow-app-lg"
+          ? "border-app-primary bg-white shadow-app-lg"
           : "border-transparent shadow-app-sm"
       }`}
       style={style}

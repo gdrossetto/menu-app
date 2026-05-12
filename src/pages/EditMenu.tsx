@@ -270,7 +270,9 @@ export default function EditMenu() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const categoryItems = items.filter(i => i.category_id === categoryId);
+    const categoryItems = items
+      .filter((i) => i.category_id === categoryId)
+      .sort((a, b) => a.order_index - b.order_index);
     const oldIndex = categoryItems.findIndex((i) => i.id === active.id);
     const newIndex = categoryItems.findIndex((i) => i.id === over.id);
 

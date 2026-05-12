@@ -13,8 +13,6 @@ import {
   CheckCircle2,
   AlignJustify,
   X,
-  Printer,
-  Download,
   FileText,
   Pencil,
   Trash2,
