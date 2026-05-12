@@ -779,7 +779,7 @@ const CTA = () => {
           </p>
           <div className="relative z-10 flex flex-col justify-center gap-4 sm:flex-row">
             <Button
-              className="border-none bg-white text-slate-900 hover:bg-slate-100"
+              className="border-none bg-white !text-slate-900 hover:bg-slate-100"
               onClick={() => navigate("/login")}
             >
               {t("landing.cta.primary", "Create Your Free Menu")}
