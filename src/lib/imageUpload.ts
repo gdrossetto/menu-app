@@ -2,6 +2,25 @@ import { supabase } from "./supabase";
 import { compressImage } from "./imageOptimization";
 import { logger } from "./logger";
 
+export class ImageUploadError extends Error {
+  readonly details?: {
+    statusCode?: string;
+    hint?: string;
+  };
+
+  constructor(
+    message: string,
+    details?: {
+      statusCode?: string;
+      hint?: string;
+    },
+  ) {
+    super(message);
+    this.name = "ImageUploadError";
+    this.details = details;
+  }
+}
+
 export async function uploadMenuImage(
   rawFile: File,
   restaurantId: string,
@@ -17,16 +36,30 @@ export async function uploadMenuImage(
 
   const { error } = await supabase.storage
     .from("menu-images")
-    .upload(filePath, file);
+    .upload(filePath, file, {
+      contentType: file.type || rawFile.type || "application/octet-stream",
+      upsert: false,
+    });
 
   if (error) {
+    const isStoragePolicyError =
+      error.message.toLowerCase().includes("row-level security") ||
+      error.message.toLowerCase().includes("permission") ||
+      error.message.toLowerCase().includes("not authorized");
+
     logger.error("Failed to upload menu image.", error, {
       restaurantId,
       filePath,
       fileType: file.type,
       fileSize: file.size,
+      statusCode: error.statusCode,
     });
-    return null;
+    throw new ImageUploadError(error.message, {
+      statusCode: error.statusCode,
+      hint: isStoragePolicyError
+        ? "Check the menu-images storage policies for authenticated insert access."
+        : undefined,
+    });
   }
 
   const { data } = supabase.storage.from("menu-images").getPublicUrl(filePath);

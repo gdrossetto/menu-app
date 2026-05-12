@@ -95,6 +95,7 @@
     "loadError": "Não foi possível carregar o menu",
     "imageUploadError": "Falha ao enviar imagem",
     "imageUploadErrorDescription": "Tente outra imagem ou verifique se o bucket menu-images existe.",
+    "imageUploadPolicyHint": "As permissões do Storage precisam ser corrigidas no Supabase.",
     "categoryAdded": "Categoria adicionada",
     "categoryAddedDescription": "Sua categoria está pronta para receber itens.",
     "categoryAddError": "Não foi possível adicionar a categoria",

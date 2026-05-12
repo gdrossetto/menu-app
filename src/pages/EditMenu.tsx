@@ -16,7 +16,7 @@ import {
 } from "../lib/billing";
 import { supabase } from "../lib/supabase";
 import { fetchMenuData as fetchRestaurantMenuData, sortItemsForCategory } from "../lib/menuData";
-import { uploadMenuImage } from "../lib/imageUpload";
+import { ImageUploadError, uploadMenuImage } from "../lib/imageUpload";
 import { getErrorMessage, logger } from "../lib/logger";
 import type {
   Category,
@@ -144,25 +144,45 @@ export default function EditMenu() {
 
   const uploadImage = async (rawFile: File): Promise<string | null> => {
     if (!restaurantId) return null;
-    const publicUrl = await uploadMenuImage(rawFile, restaurantId);
+    try {
+      const publicUrl = await uploadMenuImage(rawFile, restaurantId);
 
-    if (!publicUrl) {
-      logger.error("Menu image upload returned no public URL.", undefined, {
+      if (!publicUrl) {
+        logger.error("Menu image upload returned no public URL.", undefined, {
+          restaurantId,
+          fileName: rawFile.name,
+          fileType: rawFile.type,
+          fileSize: rawFile.size,
+        });
+        toast.error(
+          t("editMenu.imageUploadError", "Image upload failed"),
+          t(
+            "editMenu.imageUploadErrorDescription",
+            "Please try another image or check that the menu-images storage bucket exists.",
+          ),
+        );
+      }
+
+      return publicUrl;
+    } catch (error) {
+      logger.error("Menu image upload failed.", error, {
         restaurantId,
         fileName: rawFile.name,
         fileType: rawFile.type,
         fileSize: rawFile.size,
+        hint: error instanceof ImageUploadError ? error.details?.hint : undefined,
       });
       toast.error(
         t("editMenu.imageUploadError", "Image upload failed"),
-        t(
-          "editMenu.imageUploadErrorDescription",
-          "Please try another image or check that the menu-images storage bucket exists.",
-        ),
+        error instanceof ImageUploadError && error.details?.hint
+          ? t("editMenu.imageUploadPolicyHint", "Storage permissions need to be fixed in Supabase.")
+          : t(
+              "editMenu.imageUploadErrorDescription",
+              "Please try another image or check that the menu-images storage bucket exists.",
+            ),
       );
+      return null;
     }
-
-    return publicUrl;
   };
 
   const addCategory = async (e: FormEvent) => {

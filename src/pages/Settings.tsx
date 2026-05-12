@@ -24,7 +24,7 @@ import {
 } from "../lib/billing";
 import { supabase } from "../lib/supabase";
 import { fetchRestaurantByOwner } from "../lib/menuData";
-import { uploadMenuImage } from "../lib/imageUpload";
+import { ImageUploadError, uploadMenuImage } from "../lib/imageUpload";
 import { getErrorMessage, logger } from "../lib/logger";
 import type { MenuTheme, Restaurant } from "../types/menu";
 
@@ -121,22 +121,33 @@ export default function Settings() {
 
   const uploadImage = async (rawFile: File): Promise<string | null> => {
     if (!restaurant) return null;
-    const publicUrl = await uploadMenuImage(rawFile, restaurant.id, {
-      maxWidth: 600,
-      quality: 0.9,
-      prefix: "logo",
-    });
+    try {
+      const publicUrl = await uploadMenuImage(rawFile, restaurant.id, {
+        maxWidth: 600,
+        quality: 0.9,
+        prefix: "logo",
+      });
 
-    if (!publicUrl) {
-      logger.error("Logo upload returned no public URL.", undefined, {
+      if (!publicUrl) {
+        logger.error("Logo upload returned no public URL.", undefined, {
+          restaurantId: restaurant.id,
+          fileName: rawFile.name,
+          fileType: rawFile.type,
+          fileSize: rawFile.size,
+        });
+      }
+
+      return publicUrl;
+    } catch (error) {
+      logger.error("Logo upload failed.", error, {
         restaurantId: restaurant.id,
         fileName: rawFile.name,
         fileType: rawFile.type,
         fileSize: rawFile.size,
+        hint: error instanceof ImageUploadError ? error.details?.hint : undefined,
       });
+      return null;
     }
-
-    return publicUrl;
   };
 
   const saveSettings = async (e: FormEvent) => {

@@ -95,6 +95,7 @@
     "loadError": "Could not load menu",
     "imageUploadError": "Image upload failed",
     "imageUploadErrorDescription": "Please try another image or check that the menu-images storage bucket exists.",
+    "imageUploadPolicyHint": "Storage permissions need to be fixed in Supabase.",
     "categoryAdded": "Category added",
     "categoryAddedDescription": "Your category is ready for items.",
     "categoryAddError": "Could not add category",
